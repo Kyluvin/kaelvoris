@@ -1,0 +1,18 @@
+{
+  "desc": "群消息典型 JSON 样本（嵌套 Payload + 大小写混合字段，宽松解析路径）",
+  "kind": "group",
+  "hook": "hook-a1b2c3d4",
+  "body": {
+    "EventKey": "hook-a1b2c3d4",
+    "fromUserId": "u-123",
+    "Payload": {
+      "fromUserName": "张三",
+      "Content": "群里帮忙查下版本号"
+    }
+  },
+  "want": {
+    "text": "群里帮忙查下版本号",
+    "sender": "u-123",
+    "senderName": "张三"
+  }
+}

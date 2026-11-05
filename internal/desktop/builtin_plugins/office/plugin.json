@@ -1,0 +1,12 @@
+{
+  "id": "office",
+  "name": "Office 办公文档",
+  "version": "0.1.0",
+  "description": "Excel/Word/PPT 办公文档创建、编辑、导入与导出（xlsx/csv/tsv/docx/pptx）。基于隔离草稿（worktree）的编辑流，merge/discard 需显式审批。",
+  "author": "Kaelvoris",
+  "source": "builtin",
+  "mcp": {
+    "transport": "stdio",
+    "command": "goffice.exe"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "desc": "群消息显式 InMap 映射样本（text=Payload.Content / sender=fromUserId / msgId=MsgId）",
+  "kind": "group",
+  "hook": "hook-a1b2c3d4",
+  "inMap": { "text": "Payload.Content", "sender": "fromUserId", "msgId": "MsgId" },
+  "body": {
+    "MsgId": "XT-grp-replay-001",
+    "fromUserId": "u-9",
+    "Payload": { "Content": "显式映射回放文本" }
+  },
+  "want": {
+    "parseOk": true,
+    "from": "u-9",
+    "msgId": "XT-grp-replay-001",
+    "text": "显式映射回放文本",
+    "respSuccess": true
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "ponytail",
+  "name": "Ponytail 懒人资深工程师",
+  "version": "0.2.0",
+  "description": "治 agent 话痨 / 过度工程：YAGNI 阶梯审查、过度工程审计、输出克制检查、ponytail: 债务台账（真实扫描）。模型改代码前后可主动调用 mcp_ponytail_* 工具自检，附带 6 个内置技能（ponytail/review/audit/debt/gain/help）。",
+  "author": "Kaelvoris (提炼自 DietrichGebert/ponytail, MIT)",
+  "source": "builtin",
+  "mcp": {
+    "transport": "stdio",
+    "command": "ponytail.exe"
+  },
+  "skills": ["ponytail", "ponytail-review", "ponytail-audit", "ponytail-debt", "ponytail-gain", "ponytail-help"]
+}

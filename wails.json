@@ -1,0 +1,11 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "kaelvoris",
+  "outputfilename": "kaelvoris-desktop",
+  "frontend:install": "",
+  "frontend:build": "",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "kaelvoris"
+  }
+}

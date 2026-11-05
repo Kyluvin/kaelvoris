@@ -1,0 +1,20 @@
+{
+  "desc": "云之家 chatbot 创建机器人探活测试请求（robotId=test-robotId，sign 头以 test-secret 计算；应答须为文档示例格式且不建任务）",
+  "kind": "group",
+  "hook": "hook-a1b2c3d4",
+  "body": {
+    "type": 2,
+    "robotId": "test-robotId",
+    "robotName": "test-robotName",
+    "operatorOpenid": "test-userId",
+    "operatorName": "test-userName",
+    "time": 1599727083000,
+    "msgId": "test-msgId",
+    "content": "你好，你能做什么呢?"
+  },
+  "want": {
+    "status": 0,
+    "respType": 2,
+    "content": "好风凭借力，送我上青云"
+  }
+}

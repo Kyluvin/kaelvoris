@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaelvoris 管理控制台</title>
+<style>
+/* ═══ 企业风设计令牌（对齐桌面端 linear-app 暗色语言 + 企业控制台密度） ═══ */
+:root {
+  --bg: #0d1017;            /* 最深画布 */
+  --surface-1: #141821;     /* 侧栏/顶栏 */
+  --surface-2: #1a1f2b;     /* 卡片 */
+  --surface-3: #222836;     /* 悬浮 */
+  --border: rgba(255,255,255,.07);
+  --text-1: #e8eaf0;
+  --text-2: #9aa3b5;
+  --text-3: #5d6679;
+  --brand: #4f6ef7;         /* 企业蓝 */
+  --brand-weak: rgba(79,110,247,.14);
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --err: #f87171;
+  --radius: 10px;
+  --radius-sm: 6px;
+  font-size: 14px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--text-1);
+  font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased; height: 100vh; overflow: hidden;
+}
+
+/* ---------- 登录 ---------- */
+#loginView {
+  position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(1200px 600px at 20% -10%, rgba(79,110,247,.12), transparent), var(--bg);
+  z-index: 100;
+}
+#loginView.hidden { display: none; }
+.login-card {
+  width: 380px; padding: 40px 36px; background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.5);
+}
+.login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.login-logo-mark {
+  width: 36px; height: 32px; border-radius: 8px; background: var(--brand);
+  display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff;
+}
+.login-title { font-size: 19px; font-weight: 600; }
+.login-sub { color: var(--text-2); font-size: 12.5px; margin: 6px 0 26px; }
+.login-field { margin-bottom: 14px; }
+.login-field label { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 6px; }
+.login-field input {
+  width: 100%; padding: 10px 12px; background: var(--bg); color: var(--text-1);
+  border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; outline: none;
+}
+.login-field input:focus { border-color: var(--brand); }
+.login-btn {
+  width: 100%; margin-top: 8px; padding: 11px; border: none; border-radius: var(--radius-sm);
+  background: var(--brand); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.login-btn:hover { filter: brightness(1.1); }
+.login-err { color: var(--err); font-size: 12.5px; min-height: 18px; margin-top: 10px; text-align: center; }
+
+/* ---------- 主布局 ---------- */
+#appView { display: none; height: 100vh; }
+#appView.active { display: flex; }
+.sidebar {
+  width: 208px; background: var(--surface-1); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; flex-shrink: 0;
+}
+.side-brand { display: flex; align-items: center; gap: 10px; padding: 18px 16px 14px; }
+.side-brand-mark {
+  width: 28px; height: 24px; border-radius: 6px; background: var(--brand);
+  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #fff;
+}
+.side-brand-name { font-weight: 600; font-size: 14.5px; }
+.side-nav { padding: 8px; flex: 1; }
+.side-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; margin-bottom: 2px;
+  border: none; background: none; color: var(--text-2); font-size: 13.5px; border-radius: var(--radius-sm);
+  cursor: pointer; text-align: left;
+}
+.side-item:hover { background: var(--surface-2); color: var(--text-1); }
+.side-item.active { background: var(--brand-weak); color: var(--brand); font-weight: 600; }
+.side-foot { padding: 12px 16px; border-top: 1px solid var(--border); color: var(--text-3); font-size: 11.5px; }
+.side-logout { display: block; width: 100%; text-align: left; padding: 8px 12px; margin-bottom: 2px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: transparent; color: var(--text-2); font-size: 12.5px; cursor: pointer; }
+.side-logout:hover { color: var(--err); border-color: var(--err); background: var(--surface-2); }
+
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.topbar {
+  height: 52px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 22px; border-bottom: 1px solid var(--border); background: var(--surface-1);
+  flex-shrink: 0;
+}
+	.page-title { font-size: 15px; font-weight: 600; }
+	.mode-badge-hd { margin-left: 10px; }
+	.conn-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--err); margin-right: 7px; }
+	.conn-dot.on { background: var(--ok); }
+	.conn-label { font-size: 12.5px; color: var(--text-2); }
+	.userchip { display: inline-flex; align-items: center; gap: 8px; margin-left: 16px; }
+	.userchip .uname { font-size: 12.5px; color: var(--text-1); }
+	.userchip .urole { font-size: 10.5px; color: var(--brand); background: var(--brand-weak); border-radius: 999px; padding: 1px 8px; font-weight: 600; }
+	.userchip button {
+		padding: 3px 10px; font-size: 11.5px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+		background: none; color: var(--text-2); cursor: pointer; margin-left: 6px;
+	}
+	.userchip button:hover { color: var(--err); border-color: var(--err); }
+	/* 聊天弹窗 */
+	.chat-modal { width: 720px; max-width: 92vw; height: 78vh; display: flex; flex-direction: column; }
+	.chat-log { flex: 1; overflow-y: auto; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 12px; }
+		.chat-msg { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 10px; }
+		.chat-msg.user { justify-content: flex-end; }
+		.chat-avatar {
+	  width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+	  display: flex; align-items: center; justify-content: center;
+	  font-size: 10px; font-weight: 700; user-select: none;
+	}
+		.chat-avatar.bot { background: var(--brand); color: #fff; }
+		.chat-avatar.user { background: var(--surface-3); border: 1px solid var(--border); color: var(--text-2); }
+		.chat-time { font-size: 10px; color: var(--text-3); font-family: Consolas, monospace; flex-shrink: 0; margin-bottom: 2px; }
+		.chat-bubble {
+	  max-width: 80%; padding: 8px 12px; border-radius: 10px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
+		.chat-msg.user .chat-bubble { background: var(--brand); color: #fff; border-bottom-right-radius: 3px; }
+		.chat-msg.bot .chat-bubble { background: var(--surface-3); color: var(--text-1); border-bottom-left-radius: 3px; }
+		.chat-msg.ask .chat-bubble { background: rgba(251,191,36,.12); color: var(--warn); }
+		/* 气泡内 Markdown 渲染（bot 气泡；user 气泡保持纯文本） */
+		.chat-bubble.bubble-md { white-space: normal; }
+			.chat-bubble.bubble-md p { margin: .3em 0; line-height: 1.65; }
+		.chat-bubble.bubble-md p:first-child, .chat-bubble.bubble-md ul:first-child, .chat-bubble.bubble-md ol:first-child, .chat-bubble.bubble-md pre:first-child, .chat-bubble.bubble-md blockquote:first-child { margin-top: 0; }
+		.chat-bubble.bubble-md p:last-child, .chat-bubble.bubble-md ul:last-child, .chat-bubble.bubble-md ol:last-child, .chat-bubble.bubble-md pre:last-child, .chat-bubble.bubble-md blockquote:last-child { margin-bottom: 0; }
+		.chat-bubble.bubble-md .md-h { margin: .55em 0 .25em; font-weight: 700; line-height: 1.4; color: inherit; }
+		.chat-bubble.bubble-md h3.md-h { font-size: 14.5px; }
+		.chat-bubble.bubble-md h4.md-h { font-size: 13.5px; }
+		.chat-bubble.bubble-md h5.md-h { font-size: 13px; }
+		.chat-bubble.bubble-md ul, .chat-bubble.bubble-md ol { margin: .3em 0; padding-left: 18px; }
+		.chat-bubble.bubble-md li { margin: .15em 0; }
+			.chat-bubble.bubble-md .md-quote { margin: .45em 0; padding: 5px 9px; border-left: 3px solid var(--brand); background: rgba(127,127,127,.08); border-radius: 0 4px 4px 0; color: inherit; }
+			/* 图片：自适应不溢出 */
+			.chat-bubble.bubble-md img { max-width: 100%; border-radius: 6px; }
+			/* 代码块卡片：深色高亮主题（恒定深空底，头部语言标签+复制按钮） */
+			.chat-bubble.bubble-md .md-code { margin: .45em 0; background: #16181D; border: 1px solid rgba(255,255,255,.08); border-radius: 6px; overflow: hidden; }
+			.chat-bubble.bubble-md .md-code-head { display: flex; align-items: center; padding: 3px 8px; background: rgba(255,255,255,.04); border-bottom: 1px solid rgba(255,255,255,.07); }
+			.chat-bubble.bubble-md .md-code-lang { font-family: Consolas, monospace; font-size: 10px; color: #8B93A7; text-transform: uppercase; letter-spacing: .4px; }
+			.chat-bubble.bubble-md .md-code-copy {
+	  margin-left: auto; border: none; background: none; cursor: pointer; font-size: 10.5px; color: #A9B1C3; padding: 1px 7px; border-radius: 3px; font-family: inherit;
+	}
+			.chat-bubble.bubble-md .md-code-copy:hover { background: rgba(255,255,255,.10); color: #E8EAF0; }
+			.chat-bubble.bubble-md .md-code .md-pre { margin: 0; border: none; border-radius: 0; background: transparent; }
+			.chat-bubble.bubble-md .md-pre { margin: .45em 0; padding: 8px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow-x: auto; font-family: var(--mono, monospace); font-size: 11.5px; line-height: 1.55; white-space: pre; color: #D8DEE9; }
+			.chat-bubble.bubble-md code { font-family: var(--mono, monospace); font-size: 12px; background: rgba(127,127,127,.14); padding: 1px 5px; border-radius: 3px; }
+			.chat-bubble.bubble-md .md-pre code { background: transparent; padding: 0; font-size: inherit; color: inherit; }
+			/* 代码高亮 token（Nord 深空系，与桌面端/移动端一致） */
+			.chat-bubble.bubble-md .hl-kw { color: #81A1C1; }
+			.chat-bubble.bubble-md .hl-str { color: #A3BE8C; }
+			.chat-bubble.bubble-md .hl-cmt { color: #6A7387; font-style: italic; }
+			.chat-bubble.bubble-md .hl-num { color: #B48EAD; }
+			.chat-bubble.bubble-md .hl-add { color: #A3BE8C; }
+			.chat-bubble.bubble-md .hl-del { color: #BF616A; }
+			.chat-bubble.bubble-md .hl-hunk { color: #88C0D0; }
+			/* 表格：自适应宽度不溢出（长表格容器内滚动，禁止撑破气泡） */
+			.chat-bubble.bubble-md .md-table-wrap { overflow-x: auto; }
+			.chat-bubble.bubble-md table { border-collapse: collapse; margin: .45em 0; width: 100%; table-layout: fixed; font-size: 12px; }
+			.chat-bubble.bubble-md th, .chat-bubble.bubble-md td { border: 1px solid var(--border); padding: 3px 7px; text-align: left; word-break: break-word; }
+			.chat-bubble.bubble-md th { background: var(--surface-3); font-weight: 700; }
+			.chat-bubble.bubble-md a { color: #8fa3ff; }
+		/* 任务完成「文件变更」折叠卡片（turn_diff） */
+		.td-card { width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); overflow: hidden; margin-bottom: 10px; }
+		.td-head { display: flex; align-items: center; gap: 7px; padding: 8px 12px; cursor: pointer; user-select: none; font-size: 12px; color: var(--text-2); }
+		.td-head:hover { background: var(--surface-3); }
+		.td-badge { font-size: 10.5px; padding: 1px 7px; border-radius: 999px; font-family: var(--mono, monospace); }
+		.td-badge.add { background: rgba(16,185,129,.13); color: #34d399; }
+		.td-badge.mod { background: rgba(130,143,255,.13); color: #a5b4fc; }
+		.td-badge.del { background: rgba(220,38,38,.13); color: #fca5a5; }
+		.td-arrow { margin-left: auto; font-size: 10px; color: var(--text-3); transition: transform .15s; }
+		.td-card.open .td-arrow { transform: rotate(180deg); }
+		.td-body { display: none; padding: 2px 12px 10px; border-top: 1px solid var(--border); max-height: 300px; overflow-y: auto; }
+		.td-card.open .td-body { display: block; }
+		.td-entry { font-family: var(--mono, monospace); font-size: 11.5px; color: var(--text-2); padding: 1.5px 0; word-break: break-all; }
+		.td-entry.add { color: #34d399; }
+		.td-entry.mod { color: #a5b4fc; }
+		.td-entry.del { color: #fca5a5; }
+		.td-diff-head { font-family: var(--mono, monospace); font-size: 11px; color: var(--text-3); padding: 8px 0 3px; border-bottom: 1px dashed var(--border); margin-bottom: 2px; }
+		.td-line { font-family: var(--mono, monospace); font-size: 11px; line-height: 1.55; white-space: pre-wrap; word-break: break-all; padding: 0 2px; }
+		.td-line.add { color: #34d399; background: rgba(16,185,129,.08); }
+		.td-line.del { color: #fca5a5; background: rgba(220,38,38,.08); }
+	.chat-inputrow { display: flex; gap: 8px; }
+	.chat-input input { flex: 1; }
+	.todo-box { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 12px; font-size: 12.5px; }
+	.todo-row { display: flex; gap: 8px; padding: 2px 0; font-size: 12.5px; }
+	.todo-done-txt { color: var(--text-3); text-decoration: line-through; }
+	.mode-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; background: var(--brand-weak); color: #8fa3ff; font-weight: 600; }
+.content { flex: 1; overflow-y: auto; padding: 22px; }
+
+/* ---------- 概览 ---------- */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+.stat-card {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 18px;
+}
+.stat-num { font-size: 26px; font-weight: 700; margin: 6px 0 2px; }
+.stat-label { color: var(--text-2); font-size: 12.5px; }
+.stat-sub { color: var(--text-3); font-size: 11.5px; }
+
+/* ---------- 卡片与表格 ---------- */
+.card {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.card-head {
+  padding: 13px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-title { font-weight: 600; font-size: 13.5px; }
+table { width: 100%; border-collapse: collapse; }
+th {
+  text-align: left; font-size: 11.5px; color: var(--text-3); font-weight: 500;
+  padding: 9px 16px; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: .4px;
+}
+td { padding: 11px 16px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-1); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,.02); }
+
+/* ---------- 徽标 ---------- */
+.badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.badge.green { background: rgba(52,211,153,.14); color: var(--ok); }
+.badge.blue { background: rgba(79,110,247,.14); color: #8fa3ff; }
+.badge.yellow { background: rgba(251,191,36,.14); color: var(--warn); }
+.badge.red { background: rgba(248,113,113,.14); color: var(--err); }
+.badge.gray { background: rgba(255,255,255,.06); color: var(--text-2); }
+
+/* ---------- 按钮/输入 ---------- */
+.btn {
+  padding: 7px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--surface-3); color: var(--text-1); font-size: 12.5px; cursor: pointer;
+}
+.btn:hover { background: #2a3140; }
+.btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 600; }
+.btn.primary:hover { filter: brightness(1.12); }
+.btn.danger { color: var(--err); }
+.btn.sm { padding: 4px 10px; font-size: 12px; }
+input, textarea, select {
+  background: var(--bg); color: var(--text-1); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 8px 11px; font-size: 13px; outline: none;
+}
+input:focus, textarea:focus { border-color: var(--brand); }
+
+/* ---------- 弹窗 ---------- */
+.modal-mask {
+  position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal { width: 520px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+.modal h3 { font-size: 15.5px; margin-bottom: 4px; }
+.modal .sub { color: var(--text-2); font-size: 12.5px; margin-bottom: 18px; }
+.as-info { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px dashed var(--border); font-size: 13px; }
+.as-info:last-child { border-bottom: none; }
+.as-info label { color: var(--text-2); font-size: 12px; }
+.modal-field { margin-bottom: 14px; }
+.modal-field label { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 6px; }
+.modal-field textarea { width: 100%; min-height: 110px; resize: vertical; font-family: inherit; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+.hidden { display: none !important; }
+
+/* ---------- 任务详情/日志 ---------- */
+.event-log {
+  max-height: 340px; overflow-y: auto; background: var(--bg);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 10px 12px; font-family: Consolas, monospace; font-size: 12px; line-height: 1.7;
+}
+.ev-line { display: flex; gap: 10px; }
+.ev-time { color: var(--text-3); flex-shrink: 0; }
+.ev-kind { flex-shrink: 0; width: 76px; }
+.ev-kind-text { color: #8fa3ff; } .ev-kind-tool { color: #d3ae6c; }
+.ev-kind-error { color: var(--err); } .ev-kind-ask { color: var(--warn); }
+.ev-kind-started { color: var(--ok); } .ev-kind-result { color: var(--ok); }
+.ev-kind-turn_diff { color: #34d399; }
+.muted { color: var(--text-2); }
+.empty { padding: 34px; text-align: center; color: var(--text-3); font-size: 13px; }
+
+	/* 聊天弹窗 */
+	.chat-modal { width: 720px; max-width: 92vw; }
+	.chat-log { display: flex; flex-direction: column; gap: 4px; }
+	.chat-msg { display: flex; margin-bottom: 6px; }
+	.chat-msg.user { justify-content: flex-end; }
+	.chat-bubble {
+	  max-width: 80%; padding: 8px 12px; border-radius: 10px; font-size: 13px; line-height: 1.55;
+	  background: var(--surface-3); color: var(--text-1); white-space: pre-wrap; word-break: break-all;
+	}
+	.chat-msg.user .chat-bubble { background: var(--brand); color: #fff; }
+	.chat-bubble.ask { background: rgba(251,191,36,.12); color: var(--warn); }
+	.todo-item { display: flex; gap: 8px; padding: 3px 0; font-size: 12.5px; align-items: flex-start; }
+	.todo-done-txt { color: var(--text-3); text-decoration: line-through; }
+	.todo-title { font-weight: 600; font-size: 12.5px; color: var(--brand); margin-bottom: 6px; }
+	#chatTodos {
+	  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+	  padding: 10px 14px; margin-bottom: 10px;
+	}
+	.mode-badge {
+	  display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600;
+	  background: var(--brand-weak); color: #8fa3ff;
+	}
+
+	/* toast */
+	#toast {
+  position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+  background: var(--surface-3); border: 1px solid var(--border); color: var(--text-1);
+  padding: 9px 18px; border-radius: 999px; font-size: 13px; z-index: 200;
+  opacity: 0; transition: opacity .25s; pointer-events: none;
+}
+#toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- 登录视图 -->
+<div id="loginView">
+  <div class="login-card">
+    <div class="login-logo-mark">GH</div>
+    <div class="login-title">Kaelvoris 管理控制台</div>
+    <div class="login-sub">远程服务中心 · 节点与任务管理</div>
+    <div class="login-field">
+      <label>用户名</label>
+      <input id="loginUser" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>密码</label>
+      <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button id="btnLogin" class="login-btn">登 录</button>
+    <div id="loginErr" class="login-err"></div>
+  </div>
+</div>
+
+<!-- 主应用 -->
+<div id="appView">
+  <div class="sidebar">
+    <div style="padding:18px 16px 14px;display:flex;align-items:center;gap:10px;">
+      <div class="login-logo-mark" style="width:28px;height:28px;font-size:12px;">GH</div>
+      <div class="side-brand-name">Kaelvoris</div>
+    </div>
+    <div class="side-nav">
+      <button class="side-item active" data-view="overview">▦ 总览</button>
+	      <button class="side-item" data-view="nodes">⧉ 节点管理</button>
+	      <button class="side-item" data-view="tasks">▤ 任务中心</button>
+	      <button class="side-item" data-view="sessions">◈ 会话记录</button>
+	      <button class="side-item" data-view="accounts">◉ 账号管理</button>
+	      <button class="side-item" data-view="accountset">⚙ 账号设置</button>
+	   </div>
+    <div class="side-foot">
+      <button class="side-logout" id="btnLogoutSide">⏻ 退出登录</button>
+      <div style="margin-top:8px">服务中心 v1.0<br><span id="footAddr" class="muted"></span></div>
+    </div>
+  </div>
+  <div class="main">
+	    <div class="topbar">
+	      <span><span class="page-title" id="viewTitle">总览</span></span>
+	      <span style="display:flex;align-items:center">
+		<span class="userchip" id="userChip" style="display:none"><span class="uname" id="curUser"></span><span class="urole" id="curRole"></span><button id="btnChangePass">账号设置</button><button id="btnLogout">退出</button></span>
+	        <span><span class="conn-dot" id="wsDot"></span><span id="wsLabel" class="muted">连接中…</span></span>
+	      </span>
+	    </div>
+    <div class="content">
+      <!-- 总览 -->
+      <div id="view-overview">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-label">在线节点</div><div class="stat-num" id="stNodes">0</div><div class="stat-sub" id="stNodesSub">共 0 台</div></div>
+          <div class="stat-card"><div class="stat-label">运行中任务</div><div class="stat-num" id="stRunning">0</div><div class="stat-sub" id="stRunningSub">—</div></div>
+          <div class="stat-card"><div class="stat-label">今日完成</div><div class="stat-num" id="stDone">0</div><div class="stat-sub">—</div></div>
+          <div class="stat-card"><div class="stat-label">失败 / 取消</div><div class="stat-num" id="stFail">0</div><div class="stat-sub">—</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">最近任务</span>
+            <button class="btn primary" id="btnNewTask">＋ 发布任务</button>
+          </div>
+          <table>
+            <thead><tr><th>任务</th><th>节点</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+            <tbody id="recentTaskRows"><tr><td colspan="5" class="empty">加载中…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- 节点 -->
+      <div id="view-nodes" class="hidden">
+        <div class="card">
+          <div class="card-head"><span class="card-title">已注册节点</span></div>
+          <table>
+            <thead><tr><th>节点</th><th>平台</th><th>版本</th><th>执行模式</th><th>并发/当前任务</th><th>最后心跳</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody id="nodeRows"><tr><td colspan="8" class="empty">暂无节点</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+	      <!-- 任务 -->
+	      <div id="view-tasks" class="hidden">
+	        <div class="card">
+	          <div class="card-head">
+	            <span class="card-title">全部任务</span>
+	            <button class="btn primary" id="btnNewTask2">＋ 发布任务</button>
+	          </div>
+	          <!-- 任务历史过滤（服务端 list.tasks 过滤载荷；空条件 = 全量） -->
+	          <div class="filter-bar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+	            <select id="fltStatus" style="min-width:110px">
+	              <option value="">全部状态</option>
+	              <option value="running">运行中</option>
+	              <option value="pending">待执行</option>
+	              <option value="done">已完成</option>
+	              <option value="failed">失败</option>
+	              <option value="canceled">已取消</option>
+	            </select>
+	            <select id="fltNode" style="min-width:140px"><option value="">全部节点</option></select>
+	            <input id="fltSearch" placeholder="搜索任务文本 / 发布者…" style="min-width:200px;flex:1;max-width:280px" />
+	            <button class="btn sm" id="btnFltApply">筛选</button>
+	            <button class="btn sm" id="btnFltReset">重置</button>
+	          </div>
+	          <table>
+	            <thead><tr><th>任务</th><th>节点</th><th>状态</th><th>发布者</th><th>创建时间</th><th>操作</th></tr></thead>
+	            <tbody id="taskRows"><tr><td colspan="6" class="empty">加载中…</td></tr></tbody>
+	          </table>
+	        </div>
+	      </div>
+      <!-- 会话 -->
+	      <div id="view-sessions" class="hidden">
+	        <div class="card">
+	          <div class="card-head"><span class="card-title">会话记录</span></div>
+	          <table>
+	            <thead><tr><th>会话</th><th>节点</th><th>关联任务</th><th>状态</th><th>操作</th></tr></thead>
+	            <tbody id="sessionRows"><tr><td colspan="5" class="empty">加载中…</td></tr></tbody>
+	          </table>
+	        </div>
+	      </div>
+	      <!-- 账号 -->
+	      <div id="view-accounts" class="hidden">
+	        <div class="card">
+	          <div class="card-head">
+	            <span class="card-title">统一账号（同一账号 PC/移动互通）</span>
+	            <span class="muted" style="font-size:12px">密码在服务端 accounts.json 中管理，重启后生效</span>
+	          </div>
+	          <table>
+			<thead><tr><th>账号</th><th>显示名</th><th>角色</th><th>可用入口</th><th>操作</th></tr></thead>
+	            <tbody id="accountRows"><tr><td colspan="4" class="empty">加载中…</td></tr></tbody>
+	          </table>
+	        </div>
+	             </div>
+	             <!-- 账号设置（所有登录用户可见：账号信息 + 修改密码） -->
+	             <div id="view-accountset" class="hidden">
+	          <div class="card">
+	            <div class="card-head">
+	              <span class="card-title">账号设置</span>
+	              <span class="muted" style="font-size:12px">修改后本端登录凭据同步更新，重启后生效</span>
+	            </div>
+	            <div style="display:flex;gap:14px;flex-wrap:wrap;">
+	              <div style="flex:1;min-width:260px;padding:16px;border:1px solid var(--border);border-radius:var(--radius-md);">
+	                <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+	                  <div class="login-logo-mark" style="width:44px;height:44px;font-size:18px;">U</div>
+	                  <div>
+	                    <div style="font-size:16px;font-weight:600;" id="asUser">—</div>
+	                    <div class="muted" style="font-size:12px;" id="asRole">—</div>
+	                  </div>
+	                </div>
+	                <div class="as-info"><label>登录账号</label><span id="asUser2">—</span></div>
+	                <div class="as-info"><label>角色</label><span id="asRole2">—</span></div>
+	                <div class="as-info"><label>可用入口</label><span class="muted">移动端 H5 + 管理后台（同一账号互通）</span></div>
+	              </div>
+	              <div style="flex:1;min-width:300px;padding:16px;border:1px solid var(--border);border-radius:var(--radius-md);">
+	                <div style="font-size:15px;font-weight:600;margin-bottom:14px;">修改密码</div>
+	                <div class="modal-field">
+	                  <label>旧密码</label>
+	                  <input id="asOld" type="password" autocomplete="current-password" placeholder="当前密码">
+	                </div>
+	                <div class="modal-field">
+	                  <label>新密码（4~64 位）</label>
+	                  <input id="asNew" type="password" autocomplete="new-password" placeholder="••••••••">
+	                </div>
+	                <div class="modal-field">
+	                  <label>确认新密码</label>
+	                  <input id="asNew2" type="password" autocomplete="new-password" placeholder="再输入一次">
+	                </div>
+	                <div class="modal-actions">
+	                  <button class="btn primary" id="btnAsSave">确认修改</button>
+	                </div>
+	              </div>
+	            </div>
+	          </div>
+	             </div>
+	           </div>
+	         </div>
+	       </div>
+
+<!-- 发布任务弹窗 -->
+<div id="taskModal" class="modal-mask hidden">
+  <div class="modal">
+    <h3>发布远程任务</h3>
+    <div class="sub">任务将派发到选中的在线节点执行（自动选择 = 第一个在线节点）</div>
+    <div class="modal-field">
+	      <label>目标节点</label>
+	      <select id="taskNode" style="width:100%" onchange="fillModeSelect()"></select>
+	    </div>
+	    <div class="modal-field">
+	      <label>执行模式（PC 端执行前切换）</label>
+	      <select id="taskMode" style="width:100%"></select>
+	    </div>
+    <div class="modal-field">
+      <label>任务描述</label>
+      <textarea id="taskText" placeholder="例如：检查 D:\codes\kaelvoris 项目的编译错误并修复"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="btnTaskCancel">取消</button>
+      <button class="btn primary" id="btnTaskSubmit">发布</button>
+    </div>
+  </div>
+</div>
+
+<!-- 任务详情弹窗 -->
+<div id="detailModal" class="modal-mask hidden">
+  <div class="modal" style="width:640px;">
+    <h3 id="detailTitle">任务详情</h3>
+    <div class="sub" id="detailMeta"></div>
+    <div class="event-log" id="detailLog"><div class="empty">暂无事件</div></div>
+    <div id="detailResult" class="muted" style="margin-top:10px;font-size:12.5px;white-space:pre-wrap;max-height:120px;overflow-y:auto;"></div>
+    <div class="modal-actions">
+	      <button class="btn danger hidden" id="btnDetailDelete">删除记录</button>
+	      <button class="btn danger" id="btnDetailCancel">取消任务</button>
+	      <button class="btn" id="btnDetailClose">关闭</button>
+	    </div>
+  </div>
+</div>
+
+<!-- 节点设置弹窗（desktop.json 远端可见子集；同 get.config/set.config 协议） -->
+<div id="cfgModal" class="modal-mask hidden">
+  <div class="modal" style="width:560px">
+    <h3 id="cfgTitle">节点设置</h3>
+    <div class="sub" id="cfgMeta"></div>
+	    <div class="modal-field"><label>API Base URL</label><input id="cfgBaseURL" placeholder="https://api.example.com/v1" autocomplete="off" spellcheck="false"></div>
+	    <div class="modal-field"><label>模型</label><input id="cfgModel" placeholder="claude-sonnet-4-5 / gpt-5.2 …" autocomplete="off" spellcheck="false"></div>
+	    <div class="modal-field"><label>API Key（留空 = 保持不变，远端只见掩码）</label><input id="cfgApiKey" type="password" placeholder="sk-****" autocomplete="new-password"></div>
+	    <div class="modal-field">
+	      <label style="color:var(--data-amber,#fbbf24)">🎨 功能模型（图像 · 视频 · 语音，留空 = 不启用）</label>
+	      <div style="display:flex;gap:14px">
+	        <div style="flex:1"><label style="font-size:11.5px">图像 Base URL</label><input id="cfgImageBaseURL" placeholder="OpenAI images 兼容" autocomplete="off" spellcheck="false"></div>
+	        <div style="flex:1"><label style="font-size:11.5px">图像模型</label><input id="cfgImageModel" placeholder="gpt-image-1 / dall-e-3" autocomplete="off" spellcheck="false"></div>
+	      </div>
+	      <div style="display:flex;gap:14px;margin-top:8px">
+	        <div style="flex:1"><label style="font-size:11.5px">图像 API Key（留空不变）</label><input id="cfgImageKey" type="password" placeholder="sk-****" autocomplete="new-password"></div>
+	        <div style="flex:1"><label style="font-size:11.5px">视频 Base URL</label><input id="cfgVideoBaseURL" placeholder="OpenAI videos 兼容" autocomplete="off" spellcheck="false"></div>
+	      </div>
+	      <div style="display:flex;gap:14px;margin-top:8px">
+	        <div style="flex:1"><label style="font-size:11.5px">视频模型</label><input id="cfgVideoModel" placeholder="sora-2 / veo-3 / kling-v2" autocomplete="off" spellcheck="false"></div>
+	        <div style="flex:1"><label style="font-size:11.5px">视频 API Key（留空不变）</label><input id="cfgVideoKey" type="password" placeholder="sk-****" autocomplete="new-password"></div>
+	      </div>
+	      <div style="display:flex;gap:14px;margin-top:8px">
+	        <div style="flex:1"><label style="font-size:11.5px">语音 Base URL（TTS）</label><input id="cfgSpeechBaseURL" placeholder="OpenAI audio/speech 兼容" autocomplete="off" spellcheck="false"></div>
+	        <div style="flex:1"><label style="font-size:11.5px">语音模型</label><input id="cfgSpeechModel" placeholder="tts-1 / gpt-4o-mini-tts" autocomplete="off" spellcheck="false"></div>
+	      </div>
+	      <div style="display:flex;gap:14px;margin-top:8px">
+	        <div style="flex:1"><label style="font-size:11.5px">语音 API Key（留空不变）</label><input id="cfgSpeechAPIKey" type="password" placeholder="sk-****" autocomplete="new-password"></div>
+	        <div style="flex:1"><label style="font-size:11.5px">默认音色</label><input id="cfgSpeechVoice" placeholder="alloy / nova（空 = 默认）" autocomplete="off" spellcheck="false"></div>
+	      </div>
+	    </div>
+    <div class="modal-field">
+      <label style="display:flex;align-items:center;gap:7px;margin:0;cursor:pointer"><input type="checkbox" id="cfgAutoApprove" style="width:auto"> 自动批准（YOLO）</label>
+    </div>
+    <div class="modal-field" style="display:flex;gap:14px">
+      <div style="flex:1"><label>上下文窗口（tokens，空 = 默认）</label><input id="cfgContextWindow" inputmode="numeric" placeholder="自动"></div>
+      <div style="flex:1"><label>自动压缩阈值（%，空 = 默认）</label><input id="cfgCondense" inputmode="numeric" placeholder="默认"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="btnCfgClose">取消</button>
+      <button class="btn primary" id="btnCfgSave">保存配置</button>
+    </div>
+  </div>
+</div>
+
+<!-- 会话聊天弹窗（PC 端执行 · 远端查看/续聊/审批） -->
+<div id="chatModal" class="modal-mask hidden">
+  <div class="modal chat-modal">
+    <h3 id="chatTitle">会话</h3>
+    <div class="sub" id="chatMeta"></div>
+    <div id="chatTodos" class="hidden"></div>
+    <div id="chatLog" class="event-log" style="max-height:340px"></div>
+    <div id="chatAskBox" class="hidden" style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.35);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px">
+      <div id="chatAskText" style="font-size:12.5px;margin-bottom:8px;color:var(--warn)"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn danger" id="btnAskNo">拒绝</button>
+        <button class="btn primary" id="btnAskYes">同意</button>
+        <input id="chatAskInput" placeholder="或输入补充信息回复…" style="flex:1">
+        <button class="btn" id="btnAskMsg">回复</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <input id="chatInput" placeholder="发送消息（PC 端执行；运行中自动排队）" style="flex:1" autocomplete="off">
+      <button class="btn primary" id="btnChatSend">发送</button>
+      <button class="btn danger" id="btnChatCancel">取消任务</button>
+      <button class="btn" id="btnChatClose">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 修改密码弹窗（account.passwd；自己改密验旧密码，admin 可重置他人） -->
+<div id="passModal" class="modal-mask hidden">
+  <div class="modal" style="width:420px">
+    <h3 id="passTitle">修改密码</h3>
+    <div class="sub" id="passMeta"></div>
+    <div class="modal-field" id="passOldField">
+      <label>旧密码</label>
+      <input id="passOld" type="password" autocomplete="current-password" placeholder="当前密码">
+    </div>
+    <div class="modal-field">
+      <label>新密码（4~64 位）</label>
+      <input id="passNew" type="password" autocomplete="new-password" placeholder="••••••••">
+    </div>
+    <div class="modal-field">
+      <label>确认新密码</label>
+      <input id="passNew2" type="password" autocomplete="new-password" placeholder="再输入一次">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="btnPassCancel">取消</button>
+      <button class="btn primary" id="btnPassSave">确认修改</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const qs = (s) => document.querySelector(s);
+
+// ---------- 连接管理 ----------
+let ws = null;
+let authed = false;
+let reqSeq = 1;
+const pending = {}; // reqID → resolve
+let nodes = [], tasks = [], sessions = [], accounts = [];
+let currentDetail = null;
+let curUser = "", curRole = "";
+// 聊天弹窗状态。
+let chatSession = "", chatTaskId = "", chatAsk = null, chatTodos = [];
+
+// credentials 持久化（localStorage）。
+function creds() {
+  try { return JSON.parse(localStorage.getItem("gh_admin") || "{}"); } catch (e) { return {}; }
+}
+function saveCreds(c) { localStorage.setItem("gh_admin", JSON.stringify(c)); }
+
+// WS 心跳参数（与移动端同款）：25s 一探，连续 2 次无 pong（约 50s）判假活重建。
+// 修复：管理端后台挂久后 WS 半开不触发 onclose，服务端广播的任务终态收不到，
+// 状态滞留（权威源在服务端，本端维持活链路 + 回前台/兜底拉快照）。
+const HB_INTERVAL = 25000, HB_MAX_MISS = 2, RECONNECT_MAX = 30000;
+let hbTimer = 0, hbMissed = 0, reconnectTimer = 0, reconnectAttempts = 0;
+function hbStop() { if (hbTimer) { clearInterval(hbTimer); hbTimer = 0; } }
+function reconnectCancel() { if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = 0; } }
+function scheduleReconnect(delay) {
+  reconnectCancel();
+  reconnectTimer = setTimeout(() => { reconnectTimer = 0; connect(); }, delay);
+}
+function connect() {
+  reconnectCancel();
+  hbStop();
+  if (ws) { try { ws.onclose = null; ws.close(); } catch (e) {} ws = null; } // 旧连接静默丢弃（防双连接双回调）
+  const proto = location.protocol === "https:" ? "wss://" : "ws://";
+  ws = new WebSocket(proto + location.host + "/ws/client");
+  setTimeout(() => { if (ws && ws.readyState === 0) { try { ws.close(); } catch (e) {} } }, 10000); // 拨号超时兑底
+  ws.onopen = () => {
+    reconnectAttempts = 0;
+    hbMissed = 0;
+    hbStop();
+    hbTimer = setInterval(() => {
+      if (!ws || ws.readyState !== 1) return;
+      if (hbMissed >= HB_MAX_MISS) {
+        try { ws.onclose = null; ws.close(); } catch (e) {}
+        ws = null;
+        setConn(false, "重连中…");
+        connect();
+        return;
+      }
+      hbMissed++;
+      try { ws.send(JSON.stringify({ type: "client.ping", ts: Date.now() })); } catch (e) {}
+    }, HB_INTERVAL);
+    setConn(true, "已连接");
+    const c = creds();
+    if (c.token || (c.user && c.pass)) {
+      send("auth", { token: c.token || "", user: c.user || "", pass: c.pass || "" });
+    }
+  };
+  ws.onmessage = (ev) => {
+    let msg; try { msg = JSON.parse(ev.data); } catch (e) { return; }
+    if (msg.type === "client.pong") { hbMissed = 0; return; }
+    if (msg.type === "op.result" && msg.payload && msg.payload.ok === false
+        && String(msg.payload.message || "").indexOf("client.ping") >= 0) {
+      hbMissed = 0; return; // 旧服务端不识别心跳：回包即证活，且不弹错误
+    }
+    hbMissed = 0;
+    if (msg.id && pending[msg.id]) { pending[msg.id](msg); delete pending[msg.id]; }
+    handle(msg);
+  };
+  ws.onclose = () => {
+    hbStop();
+    if (!ws) return; // 假活重建路径已接管：静默退出防重复重连
+    ws = null;
+    authed = false;
+    setConn(false, "已断开");
+    if (reconnectAttempts < 6) reconnectAttempts++;
+    scheduleReconnect(document.visibilityState === "visible" ? Math.min(2500 * Math.pow(2, reconnectAttempts - 1), RECONNECT_MAX) : 2000);
+  };
+  ws.onerror = () => { try { ws.close(); } catch (e) {} };
+}
+
+function setConn(on, label) {
+  const dot = $("wsDot"), labelEl = $("wsLabel");
+  if (!dot || !labelEl) return; // 页头未就绪（模块加载早于 DOM）时防 NPE
+  dot.className = "conn-dot" + (on ? " on" : "");
+  labelEl.textContent = on ? "已连接" : (label || "连接中…");
+}
+
+function send(type, payload) {
+  if (!ws || ws.readyState !== 1) return null;
+  const id = "r" + (reqSeq++);
+  ws.send(JSON.stringify({ id, type, payload, ts: Date.now() }));
+  return id;
+}
+function request(type, payload) {
+  return new Promise((resolve) => {
+    const id = send(type, payload);
+    if (!id) return resolve({ type: "server.error", payload: { message: "未连接" } });
+    pending[id] = resolve;
+    setTimeout(() => { if (pending[id]) { pending[id]({ type: "server.error", payload: { message: "超时" } }); delete pending[id]; } }, 10000);
+  });
+}
+
+	function toast(m) {
+	  const t = $("toast");
+	  t.textContent = m; t.classList.add("show");
+	  clearTimeout(t._tm); t._tm = setTimeout(() => t.classList.remove("show"), 2400);
+	}
+
+	// ---------- 媒体签名 URL 换取（2026-10 安全加固） ----------
+	// 服务端 /img/ 已改为短期签名托管：聊天卡内 <video>/<audio> 渲染前经
+	// /api/file-url 换取签名 URL（Basic 凭据复用登录）；失败回退原 URL（兼容窗口）。
+	const mediaSignCache = new Map();
+	function adminAuthHeader() {
+	  const c = creds();
+	  const raw = (c.user || "") + ":" + (c.pass || "");
+	  const latin = raw.replace(/[^\x00-\x7F]/g, "?");
+	  return "Basic " + btoa(latin);
+	}
+	async function resolveMedia(u, sid) {
+	  if (!u || u.indexOf("/img/") !== 0 || !sid) return u || "";
+	  const base = String(u).split("?")[0];
+	  const key = base + "|" + sid;
+	  if (mediaSignCache.has(key)) return mediaSignCache.get(key);
+	  try {
+	    const res = await fetch("/api/file-url?f=" + encodeURIComponent(base.slice(5)) + "&sid=" + encodeURIComponent(sid), { headers: { "Authorization": adminAuthHeader() } });
+	    const j = await res.json();
+	    const url = j && j.data && j.data.url;
+	    if (url) { mediaSignCache.set(key, url); return url; }
+	  } catch (e) { /* 换取失败回退原 URL */ }
+	  return u;
+	}
+
+// ---------- 消息分发 ----------
+function handle(msg) {
+	switch (msg.type) {
+		case "auth.ok": {
+			const p = msg.payload || {};
+			authed = true;
+			curUser = p.user || "";
+			curRole = p.role || "";
+			$("curUser").textContent = curUser;
+			$("curRole").textContent = curRole === "admin" ? "管理员" : "用户";
+			$("userChip").classList.remove("hidden");
+			$("loginView").classList.add("hidden");
+			$("appView").classList.add("active");
+			setConn(true);
+			refreshAll();
+			if (curRole === "admin") request("list.accounts");
+			break;
+		}
+    case "auth.err":
+      $("loginErr").textContent = (msg.payload && msg.payload.message) || "认证失败";
+      setConn(false, "未认证");
+      break;
+    case "nodes":
+      nodes = msg.payload || [];
+      renderNodes(); renderStats(); fillNodeSelect();
+      break;
+		case "tasks":
+			tasks = msg.payload || [];
+			renderTasks(); renderStats();
+			break;
+		case "sessions":
+			sessions = (msg.payload && msg.payload.sessions) || [];
+			if ($("view-sessions") && !$("view-sessions").classList.contains("hidden")) loadSessions();
+			break;
+		case "accounts":
+			accounts = (msg.payload && msg.payload.accounts) || [];
+			renderAccounts();
+			break;
+		case "task.event": {
+			const ev = msg.payload || {};
+			if (currentDetail && ev.taskId === currentDetail) {
+				appendEvent(ev);
+			}
+			// 聊天弹窗：实时事件流。
+			if (chatSession && ev.sessionId === chatSession) {
+				appendChatEvent(ev);
+			}
+			if (ev.kind === "ask" && ev.sessionId === chatSession) {
+				chatAsk = { sessionID: ev.sessionId, text: ev.text || "请确认" };
+				renderChatAsk();
+			}
+			break;
+		}
+		case "task.result": {
+			// 结果到达时刷新任务列表 + 详情。
+			refreshTasks();
+			request("list.sessions");
+			const p = msg.payload || {};
+			if (msg.payload && msg.payload.task) {
+				const t = msg.payload.task;
+				if (currentDetail === t.id) {
+					$("detailResult").textContent = (msg.payload.ok ? "✓ " : "✗ ") + (msg.payload.result || msg.payload.error || "");
+				}
+			}
+		  if (p.sessionId === chatSession) {
+					appendChatLine("bot", (p.ok ? "✅ " : "❌ ") + (p.result || p.error || "任务结束"), Date.now());
+					chatAsk = null; renderChatAsk();
+			}
+			break;
+		}
+		case "messages": {
+			// 会话历史（聊天弹窗渲染 + todos 进度）。
+			const p = msg.payload || {};
+			if (p.sessionID === chatSession) {
+				renderChatHistory(p.messages || []);
+				renderChatTodos(p.todos || []);
+			}
+			break;
+		}
+    case "op.result":
+      if (msg.payload && !msg.payload.ok) {
+        if (cfgSaving) { cfgSaving = false; $("btnCfgSave").disabled = false; } // 服务端路由失败（如节点离线）
+        toast(msg.payload.message || "操作失败");
+      }
+      break;
+    case "server.error":
+      if (cfgSaving) { cfgSaving = false; $("btnCfgSave").disabled = false; } // 节点保存失败回报
+      toast((msg.payload && msg.payload.message) || "服务端错误");
+      break;
+    case "node.config": {
+      // 节点配置快照广播（get.config 应答带请求 id 走 request resolve；
+      // 此处处理无 id 广播：set.config 成功后节点回报 agent.config）。
+      const p = msg.payload || {};
+      if (p.nodeId === cfgNodeId) {
+        if (cfgSaving) {
+          cfgSaving = false;
+          $("btnCfgSave").disabled = false;
+          $("cfgModal").classList.add("hidden");
+          toast("配置已保存");
+        }
+        fillCfgForm(p.config); // 实时快照覆盖表单（含 get.config 后续拉取刷新）
+      }
+      break;
+    }
+  }
+}
+
+// ---------- 登录 ----------
+$("btnLogin").addEventListener("click", doLogin);
+$("loginPass").addEventListener("keydown", (e) => { if (e.key === "Enter") doLogin(); });
+function doLogin() {
+  const user = $("loginUser").value.trim();
+  const pass = $("loginPass").value;
+  if (!user || !pass) { $("loginErr").textContent = "请输入用户名和密码"; return; }
+  saveCreds({ user, pass, token: creds().token || "" });
+  send("auth", { user, pass });
+}
+
+// ---------- 视图切换 ----------
+document.querySelectorAll(".side-item").forEach((b) => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll(".side-item").forEach((x) => x.classList.remove("active"));
+    b.classList.add("active");
+    const v = b.dataset.view;
+    for (const el of document.querySelectorAll("[id^=view-]")) el.classList.add("hidden");
+    $("view-" + v).classList.remove("hidden");
+	const titles = { overview: "总览", nodes: "节点管理", tasks: "任务中心", sessions: "会话记录", accounts: "账号管理", accountset: "账号设置" };
+	$("viewTitle").textContent = titles[v] || v;
+	if (v === "sessions") loadSessions();
+	if (v === "accounts") request("list.accounts");
+	if (v === "accountset") renderAccountSet();
+  });
+});
+
+// ---------- 渲染 ----------
+function fmtTime(ts) {
+  if (!ts) return "—";
+  const d = new Date(ts);
+  const p = (n) => String(n).padStart(2, "0");
+  return `${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function statusBadge(s) {
+  const map = {
+    pending: ["gray", "待执行"], running: ["blue", "运行中"],
+    done: ["green", "已完成"], failed: ["red", "失败"], canceled: ["gray", "已取消"],
+  };
+  const [cls, label] = map[s] || ["gray", s];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+function esc(s) {
+  return String(s || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+function renderStats() {
+  const online = nodes.filter((n) => n.online).length;
+  $("stNodes").textContent = online;
+  $("stNodesSub").textContent = "共 " + nodes.length + " 台";
+  const running = tasks.filter((t) => t.status === "running");
+  $("stRunning").textContent = running.length;
+  $("stRunningSub").textContent = running.length ? running[0].text.slice(0, 18) : "—";
+  $("stDone").textContent = tasks.filter((t) => t.status === "done").length;
+  $("stFail").textContent = tasks.filter((t) => t.status === "failed" || t.status === "canceled").length;
+}
+
+function nodeByID(id) { return nodes.find((n) => n.id === id) || {}; }
+
+function renderNodes() {
+  const tb = $("nodeRows");
+  if (!nodes.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">暂无节点，请在 PC 端设置 → 远程节点 中接入</td></tr>'; return; }
+  tb.innerHTML = nodes.map((n) => `
+    <tr>
+      <td><b>${esc(n.name)}</b><div class="muted" style="font-size:11px">${esc(n.id)}</div></td>
+      <td class="muted">${esc(n.platform || "-")} / ${esc(n.arch || "-")}</td>
+      <td class="muted">${esc(n.version || "-")}</td>
+      <td>${n.mode ? `<span class="mode-badge">${esc(n.mode)}</span>` : '<span class="muted">-</span>'}${n.modes && n.modes.length ? `<div class="muted" style="font-size:11px">可选 ${n.modes.length} 种</div>` : ""}</td>
+      <td>${(n.runningTasks || 0) > 0 ? `<span class="badge ${n.runningTasks > 1 ? 'yellow' : 'blue'}">${n.runningTasks} 任务</span> ` : ''}${n.currentTask ? `<span class="muted" style="font-size:11px">${esc(n.currentTask)}</span>` : '<span class="muted">空闲</span>'}</td>
+      <td class="muted">${fmtTime(n.lastSeen)}</td>
+      <td>${n.online ? '<span class="badge green">在线</span>' : '<span class="badge gray">离线</span>'}</td>
+      <td><button class="btn sm" onclick="openNodeCfg('${esc(n.id)}')">设置</button></td>
+    </tr>`).join("");
+}
+
+	function renderTasks() {
+	  renderTaskTable($("recentTaskRows"), tasks.slice(0, 8));
+	  renderTaskTable($("taskRows"), filteredTasks());
+	}
+
+	// ---------- 任务历史过滤 ----------
+	// 当前过滤条件（服务端语义同款：条件间 AND；空值 = 不过滤）。
+	let taskFilter = { status: "", nodeId: "", search: "" };
+
+	// fillTaskFilterNodes 过滤栏节点下拉（含离线节点，历史任务可能来自离线节点）。
+	function fillTaskFilterNodes() {
+	  const sel = $("fltNode");
+	  if (!sel) return;
+	  const cur = sel.value;
+	  sel.innerHTML = '<option value="">全部节点</option>' +
+	    nodes.map((n) => `<option value="${esc(n.id)}">${esc(n.name || n.id)}${n.online ? "" : "（离线）"}</option>`).join("");
+	  if (cur) sel.value = cur;
+	}
+
+	// filteredTasks 本地过滤（服务端返回全量列表后二次筛，实时响应广播更新；
+	// “筛选”按钮同时下发服务端过滤载荷，两端语义一致）。
+	function filteredTasks() {
+	  const q = (taskFilter.search || "").trim().toLowerCase();
+	  return tasks.filter((t) =>
+	    (!taskFilter.status || t.status === taskFilter.status) &&
+	    (!taskFilter.nodeId || t.nodeId === taskFilter.nodeId) &&
+	    (!q || String(t.text || "").toLowerCase().includes(q) || String(t.createdBy || "").toLowerCase().includes(q))
+	  );
+	}
+
+	function applyTaskFilter() {
+	  taskFilter = { status: $("fltStatus").value, nodeId: $("fltNode").value, search: $("fltSearch").value.trim() };
+	  renderTasks();
+	  // 下发服务端过滤载荷（响应经 case "tasks" 覆盖 tasks 全量缓存，过滤状态由本地重算，双保险）。
+	  const payload = {};
+	  if (taskFilter.status) payload.status = taskFilter.status;
+	  if (taskFilter.nodeId) payload.nodeId = taskFilter.nodeId;
+	  if (taskFilter.search) payload.search = taskFilter.search;
+	  payload.limit = 1000;
+	  request("list.tasks", payload);
+	}
+	function renderTaskTable(tbody, list) {
+	  if (!tbody) return;
+	  if (!list.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">暂无任务</td></tr>'; return; }
+	  tbody.innerHTML = list.map((t) => `
+	    <tr>
+	      <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(t.text)}">${esc(t.text.slice(0, 46))}</td>
+	      <td class="muted">${esc((nodeByID(t.nodeId) || {}).name || t.nodeId)}</td>
+	      <td>${statusBadge(t.status)}</td>
+	      <td class="muted">${esc(t.createdBy || "-")}</td>
+	      <td class="muted">${fmtTime(t.createdAt)}</td>
+	      <td><button class="btn sm" onclick="openDetail('${esc(t.id)}')">详情</button>${deletable(t) ? `<button class="btn sm danger" style="margin-left:6px" onclick="removeTask('${esc(t.id)}')">删除</button>` : ""}</td>
+	    </tr>`).join("");
+	}
+	// 仅终态任务可删记录（与移动端 deletable 同语义；服务端二次校验）。
+	function deletable(t) { return t.status === "done" || t.status === "failed" || t.status === "canceled"; }
+	async function removeTask(taskId) {
+	  if (!confirm("删除后聊天历史与进度清单将一并清除，确定删除？")) return;
+	  const res = await request("delete.task", { taskId });
+	  if (res.type === "op.result" && res.payload && res.payload.ok) {
+	    toast("记录已删除");
+	    if (currentDetail === taskId) { $("detailModal").classList.add("hidden"); currentDetail = null; }
+	    refreshTasks(); request("list.sessions");
+	  } else {
+	    toast((res.payload && res.payload.message) || "删除失败");
+	  }
+	}
+	window.removeTask = removeTask;
+
+function renderSessions() { /* 占位：loadSessions 填充 */ }
+
+// ---------- 统一账号（PC/移动互通，admin 可见） ----------
+function renderAccounts() {
+	const tb = $("accountRows");
+	if (!tb) return;
+		if (!accounts.length) { tb.innerHTML = '<tr><td colspan="5" class="empty">暂无账号（服务端 accounts.json users）</td></tr>'; return; }
+		tb.innerHTML = accounts.map((a) => `
+			<tr>
+				<td><b>${esc(a.user)}</b></td>
+				<td class="muted">${esc(a.displayName || a.user)}</td>
+				<td>${a.role === "admin" ? '<span class="badge blue">管理员</span>' : '<span class="badge gray">用户</span>'}</td>
+				<td class="muted">移动端 H5 + 管理后台（同一账号互通）</td>
+				<td>${a.user === curUser ? '<span class="muted" style="font-size:11.5px">当前账号</span>' : `<button class="btn sm" onclick="openPassModal('${esc(a.user)}')">重置密码</button>`}</td>
+			</tr>`).join("");
+}
+
+function fillNodeSelect() {
+	  const sel = $("taskNode");
+	  if (!sel) return;
+	  const online = nodes.filter((n) => n.online);
+	  sel.innerHTML = '<option value="">自动选择（第一个在线节点）</option>' +
+	    online.map((n) => `<option value="${esc(n.id)}">${esc(n.name)}（在线 · 模式 ${esc(n.mode || "-")}）</option>`).join("") +
+	    nodes.filter((n) => !n.online).map((n) => `<option value="${esc(n.id)}" disabled>${esc(n.name)}（离线）</option>`).join("");
+	  fillModeSelect();
+	  fillTaskFilterNodes(); // 任务过滤栏节点下拉同步更新（含离线节点）
+	}
+
+// 模式选择（节点 modes 由 PC 端注册上报；PC 端执行前切换，所有对话与执行仅在 PC 端）。
+function fillModeSelect() {
+  const sel = $("taskMode");
+  if (!sel) return;
+  const nid = $("taskNode").value;
+  const n = nodes.find((x) => x.id === nid) || nodes.find((x) => x.online) || {};
+  const modes = n.modes || [];
+  sel.innerHTML = '<option value="">节点当前模式</option>' +
+    modes.map((m) => `<option value="${esc(m.slug)}">${esc(m.name || m.slug)}</option>`).join("");
+}
+
+// ---------- 会话 ----------
+async function loadSessions() {
+  if (!sessions.length) await request("list.sessions", {});
+  const list = sessions;
+  const tb = $("sessionRows");
+  if (!list.length) { tb.innerHTML = '<tr><td colspan="5" class="empty">暂无会话</td></tr>'; return; }
+  tb.innerHTML = list.map((s) => `
+	    <tr>
+	      <td>${s.parentId ? '<span style="padding-left:18px;opacity:.7">↳</span> ' : ''}${esc(s.title)}</td>
+	      <td class="muted">${esc((nodeByID(s.nodeId) || {}).name || s.nodeId)}</td>
+	      <td class="muted">${esc(s.taskId)}</td>
+      <td>${statusBadge(s.status)}</td>
+      <td><button class="btn sm" onclick="openChat('${esc(s.sessionID)}')">对话</button></td>
+    </tr>`).join("");
+}
+
+// ---------- 聊天弹窗（PC 端执行 · 远端查看/续聊/审批） ----------
+function renderChatHistory(raws) {
+  const log = $("chatLog");
+  log.innerHTML = "";
+  for (const raw of raws) {
+    try {
+      const m = typeof raw === "string" ? JSON.parse(raw) : raw;
+      if (m.partial && m.say !== "text" && m.say !== "reasoning") continue;
+      if (m.say === "api_req_started" || m.say === "api_req_finished" || m.say === "ai_context") continue;
+      if (m.say === "progress") continue; // 心跳不落历史，历史回放无需渲染
+      let role = "bot", text = m.text || "";
+      if (m.type === "ask") { role = "ask"; text = "❓ " + text; }
+      else if (m.say === "user_feedback") role = "user";
+      else if (m.say === "tool") {
+        try {
+          const info = JSON.parse(m.text);
+          text = "🛠 " + (info.tool || "") + (info.path ? " → " + info.path : "") + (info.cmd ? " → " + String(info.cmd).slice(0, 100) : "");
+        } catch (e) { text = "🛠 工具调用"; }
+      } else if (m.say === "error") text = "⚠️ " + text;
+      if (!text) continue;
+      if (m.say === "turn_diff") { appendTurnDiffCard(text); continue; }
+      appendChatLine(role, text, m.ts);
+    } catch (e) { /* skip */ }
+  }
+  log.scrollTop = log.scrollHeight;
+}
+
+
+	// appendChatLine 聊天行：气泡 + 头像 + 时间戳（视觉升级 2026-10）。
+	// role: user | bot | ask；text 任意文本；ts 毫秒时间戳（可选）。
+	function appendChatLine(role, text, ts) {
+	  const log = $("chatLog");
+	  if (log.childElementCount === 1 && log.firstElementChild.classList.contains("empty")) log.innerHTML = "";
+	  const isUser = role === "user";
+	  const div = document.createElement("div");
+	  div.className = "chat-msg " + (isUser ? "user" : "bot");
+	  // 助手/ask 行：头像在左；用户行：时间戳+头像在右（气泡之后）
+	  const avatar = document.createElement("div");
+	  avatar.className = "chat-avatar " + (isUser ? "user" : "bot");
+	  avatar.textContent = isUser ? "你" : "H";
+	  const bubble = document.createElement("div");
+	  bubble.className = "chat-bubble" + (role === "ask" ? " ask" : "");
+	  if (isUser || !hasMd(text)) bubble.textContent = text; // 用户消息/纯文本保持原文
+	  else { bubble.classList.add("bubble-md"); bubble.appendChild(renderMarkdownDom(text)); }
+	  const time = document.createElement("span");
+	  time.className = "chat-time";
+	  time.textContent = fmtClock(ts);
+	  if (isUser) { div.appendChild(bubble); if (time.textContent) div.appendChild(time); div.appendChild(avatar); }
+	  else { if (time.textContent) div.appendChild(time); div.appendChild(avatar); div.appendChild(bubble); }
+	  log.appendChild(div);
+	  log.scrollTop = log.scrollHeight;
+	}
+	// fmtClock 毫秒时间戳 → 当日 HH:MM / 跨日 M/D HH:MM（空值静默）。
+	function fmtClock(ms) {
+	  if (!ms) return "";
+	  let n = Number(ms);
+	  if (!isFinite(n) || n <= 0) return "";
+	  if (n > 1e14) n = Math.round(n / 1e6); // ns → ms
+	  const d = new Date(n);
+	  if (isNaN(d.getTime())) return "";
+	  const p = (x) => String(x).padStart(2, "0");
+	  const hm = p(d.getHours()) + ":" + p(d.getMinutes());
+	  const now = new Date();
+	  if (d.toDateString() === now.toDateString()) return hm;
+	  return (d.getMonth() + 1) + "/" + d.getDate() + " " + hm;
+	}
+
+	// ---------- 气泡内 Markdown 渲染（纯 DOM 构建，textContent 赋值，防注入） ----------
+	// 支持标题/围栏代码块/列表/引用/表格/分隔线/粗体/斜体/删除线/行内代码/链接。
+	function hasMd(src) {
+	  const s = String(src || "");
+	  return /(^|\n)\s*(```|#{1,4}\s|[-*+]\s|\d+[.)]\s|>|\|)/.test(s)
+	    || /(^|\n)\s*(-{3,}|\*{3,})\s*(\n|$)/.test(s)
+	    || /\*\*[^*\n]+\*\*/.test(s)
+	    || /`[^`\n]+`/.test(s)
+	    || /\[[^\]\n]+\]\([^)\s]+\)/.test(s);
+	}
+		// ---------- 代码块轻量高亮（与桌面端/移动端同一套语义） ----------
+		// 字符串先占位（纯字母编码，避免被关键字/数字分词破坏）→ 注释占位 →
+		// 关键字/数字 span → 回填。直接操作 DOM textContent，无注入面。
+			const MD_HL_STR = /&quot;[^&\n]*?&quot;|"[^"\n]*"|`[^`\n]*`/g;
+		const MD_HL_CMT = {
+	  clike: /\/\*[\s\S]*?\*\/|\/\/[^\n]*/g,
+	  hash: /#[^\n]*/g,
+	  sql: /\/\*[\s\S]*?\*\/|--[^\n]*/g,
+	};
+		const MD_HL_FAMILY = { py: "hash", python: "hash", rb: "hash", sh: "hash", bash: "hash", shell: "hash", yml: "hash", yaml: "hash", toml: "hash", ini: "hash", sql: "sql" };
+		const MD_HL_KW = new Set(("function return if else for while do switch case break continue new class struct interface " +
+	  "extends implements import export from as try catch finally throw throws def self public private protected static " +
+	  "final const let var type void int string bool boolean float double char byte short long true false nil null " +
+	  "undefined async await yield package defer chan select range make func default in of not and or is this super " +
+	  "namespace using enum union sizeof lambda with pass raise elif println len append delete where insert into update " +
+	  "values select begin end then elsif endif foreach").split(" "));
+		const MD_HL_KW_GO = new Set(("package import func var const type struct interface map chan go defer select range " +
+	  "if else for switch case default break continue return goto fallthrough string int int8 int16 int32 int64 uint " +
+	  "uint8 uint16 uint32 uint64 uintptr byte rune float32 float64 bool complex64 complex128 error any true false " +
+	  "nil make new len cap append copy delete panic recover iota").split(" "));
+		function mdEnc26(n) { let s = ""; n = Number(n) + 1; while (n > 0) { s = String.fromCharCode(64 + ((n - 1) % 26) + 1) + s; n = Math.floor((n - 1) / 26); } return s; }
+		function mdDec26(s) { let n = 0; for (const ch of s) n = n * 26 + (ch.charCodeAt(0) - 64); return n - 1; }
+		// highlightCode 返回 HTML 字符串（span.hl-*，内部已转义），由 innerHTML 注入 code 元素。
+		// src 必须是未转义原文。
+		function highlightCode(src, lang) {
+	  const out = esc(src);
+	  try {
+	    if (lang === "diff") {
+	      return out.split("\n").map((l) => l.startsWith("@@") ? '<span class="hl-hunk">' + l + "</span>"
+	        : l.startsWith("+") ? '<span class="hl-add">' + l + "</span>"
+	        : l.startsWith("-") ? '<span class="hl-del">' + l + "</span>" : l).join("\n");
+	    }
+	    const kw = lang === "go" ? MD_HL_KW_GO : MD_HL_KW;
+	    const fam = MD_HL_FAMILY[lang] || "clike";
+	    const strSpans = [], cmtSpans = [];
+	    let o = out.replace(MD_HL_STR, (m) => { strSpans.push(m); return "\u0000K" + mdEnc26(strSpans.length - 1) + "J\u0000"; });
+	    const cmtRe = fam === "hash" ? MD_HL_CMT.hash : fam === "sql" ? MD_HL_CMT.sql : MD_HL_CMT.clike;
+	    o = o.replace(cmtRe, (m) => { cmtSpans.push(m); return "\u0000K" + mdEnc26(cmtSpans.length - 1) + "H\u0000"; });
+	    o = o.replace(/[A-Za-z_][A-Za-z0-9_]*|\d[\d_.]*/g, (w) => kw.has(w) ? '<span class="hl-kw">' + w + "</span>"
+	      : /^\d/.test(w) ? '<span class="hl-num">' + w + "</span>" : w);
+	    o = o.replace(/\u0000K([A-Z]+)J\u0000/g, (_, i) => '<span class="hl-str">' + strSpans[mdDec26(i)] + "</span>");
+	    o = o.replace(/\u0000K([A-Z]+)H\u0000/g, (_, i) => '<span class="hl-cmt">' + cmtSpans[mdDec26(i)] + "</span>");
+	    return o;
+	  } catch { return out; }
+	}
+		// mdLangLabel 语言显示名（与桌面端 langLabel 同一映射）。
+		function mdLangLabel(lang) {
+	  const map = { js: "JavaScript", jsx: "JSX", ts: "TypeScript", tsx: "TSX", go: "Go", py: "Python", python: "Python",
+	    sh: "Shell", bash: "Shell", shell: "Shell", powershell: "PowerShell", ps1: "PowerShell", json: "JSON",
+	    html: "HTML", css: "CSS", vue: "Vue", sql: "SQL", yml: "YAML", yaml: "YAML", md: "Markdown", java: "Java",
+	    c: "C", cpp: "C++", cs: "C#", rs: "Rust", rust: "Rust", toml: "TOML", ini: "INI", diff: "Diff" };
+	  if (!lang) return "文本";
+	  return map[lang] || lang.toUpperCase();
+	}
+
+		function mdInline(parent, text) {
+	  const re = /(`[^`\n]+`)|(\*\*[^*\n]+\*\*)|(\*[^*\n]+\*)|(~~[^~\n]+~~)|(\[[^\]\n]+\]\([^)\s]+\))/g;
+	  let last = 0, m;
+	  while ((m = re.exec(text)) !== null) {
+	    if (m.index > last) parent.appendChild(document.createTextNode(text.slice(last, m.index)));
+	    const tok = m[0];
+	    let el = null;
+	    if (tok.startsWith("`")) { el = document.createElement("code"); el.textContent = tok.slice(1, -1); }
+	    else if (tok.startsWith("**")) { el = document.createElement("strong"); el.textContent = tok.slice(2, -2); }
+	    else if (tok.startsWith("~~")) { el = document.createElement("del"); el.textContent = tok.slice(2, -2); }
+	    else if (tok.startsWith("[")) {
+	      const mm = tok.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/);
+	      if (mm) {
+	        el = document.createElement("a"); el.href = mm[2]; el.textContent = mm[1];
+	        el.target = "_blank"; el.rel = "noopener noreferrer";
+	      }
+	    } else { el = document.createElement("em"); el.textContent = tok.slice(1, -1); }
+	    if (el) parent.appendChild(el);
+	    else parent.appendChild(document.createTextNode(tok));
+	    last = m.index + tok.length;
+	  }
+	  if (last < text.length) parent.appendChild(document.createTextNode(text.slice(last)));
+	}
+	function renderMarkdownDom(text) {
+	  const frag = document.createDocumentFragment();
+	  const lines = String(text || "").split("\n");
+	  const cells = (l) => l.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
+	  let para = [];
+	  const flushPara = () => {
+	    if (!para.length) return;
+	    const p = document.createElement("p");
+	    para.forEach((ln, i) => { if (i) p.appendChild(document.createElement("br")); mdInline(p, ln); });
+	    frag.appendChild(p); para = [];
+	  };
+	  for (let i = 0; i < lines.length; i++) {
+	    const line = lines[i];
+	    const fence = line.match(/^\s*```/);
+	    if (fence) {
+	      para = [];
+	      const langM = line.match(/^\s*```(\w*)/);
+	      const lang = ((langM && langM[1]) || "").toLowerCase();
+	      const pre = document.createElement("pre");
+	      pre.className = "md-pre";
+	      const code = document.createElement("code");
+	      const body = [];
+	      for (i++; i < lines.length && !/^\s*```\s*$/.test(lines[i]); i++) body.push(lines[i]);
+	      code.textContent = highlightCode(body.join("\n"), lang);
+	      if (lang) code.dataset.lang = lang;
+	      // 代码块卡片：头部（语言标签 + 复制按钮）+ 深色高亮正文
+	      const wrap = document.createElement("div");
+	      wrap.className = "md-code";
+	      const head = document.createElement("div");
+	      head.className = "md-code-head";
+	      const langEl = document.createElement("span");
+	      langEl.className = "md-code-lang";
+	      langEl.textContent = mdLangLabel(lang);
+	      const btn = document.createElement("button");
+	      btn.type = "button";
+	      btn.className = "md-code-copy";
+	      btn.setAttribute("data-code-copy", "");
+	      btn.textContent = "复制";
+	      head.appendChild(langEl); head.appendChild(btn);
+	      wrap.appendChild(head); wrap.appendChild(pre);
+	      frag.appendChild(wrap);
+	      continue;
+	    }
+	    if (/^\s*(-{3,}|\*{3,})\s*$/.test(line)) { flushPara(); frag.appendChild(document.createElement("hr")); continue; }
+	    const h = line.match(/^(#{1,4})\s+(.*)$/);
+	    if (h) {
+	      flushPara();
+	      const el = document.createElement("h" + (h[1].length + 2));
+	      el.className = "md-h"; mdInline(el, h[2]); frag.appendChild(el);
+	      continue;
+	    }
+	    if (/^\s*[-*+]\s+/.test(line)) {
+	      flushPara();
+	      const ul = document.createElement("ul");
+	      for (; i < lines.length && /^\s*[-*+]\s+/.test(lines[i]); i++) {
+	        const li = document.createElement("li"); mdInline(li, lines[i].replace(/^\s*[-*+]\s+/, "")); ul.appendChild(li);
+	      }
+	      i--; frag.appendChild(ul); continue;
+	    }
+	    if (/^\s*\d+[.)]\s+/.test(line)) {
+	      flushPara();
+	      const ol = document.createElement("ol");
+	      for (; i < lines.length && /^\s*\d+[.)]\s+/.test(lines[i]); i++) {
+	        const li = document.createElement("li"); mdInline(li, lines[i].replace(/^\s*\d+[.)]\s+/, "")); ol.appendChild(li);
+	      }
+	      i--; frag.appendChild(ol); continue;
+	    }
+	    if (/^>\s?/.test(line)) {
+	      flushPara();
+	      const bq = document.createElement("blockquote");
+	      bq.className = "md-quote";
+	      const content = [];
+	      for (; i < lines.length && /^>\s?/.test(lines[i]); i++) content.push(lines[i].replace(/^>\s?/, ""));
+	      i--; mdInline(bq, content.join(" ")); frag.appendChild(bq);
+	      continue;
+	    }
+	    if (/^\s*\|.*\|\s*$/.test(line)) {
+	      const next = lines[i + 1] || "";
+	      if (/^\s*\|[\s:|-]+\|?\s*$/.test(next) && /-/.test(next.replace(/\|/g, ""))) {
+	        flushPara();
+	        const table = document.createElement("table");
+	        const thead = document.createElement("thead");
+	        const trh = document.createElement("tr");
+	        for (const c of cells(line)) { const th = document.createElement("th"); mdInline(th, c); trh.appendChild(th); }
+	        thead.appendChild(trh); table.appendChild(thead);
+	        const tbody = document.createElement("tbody");
+	        let j = i + 2;
+	        for (; j < lines.length && /^\s*\|.*\|\s*$/.test(lines[j]); j++) {
+	          const tr = document.createElement("tr");
+	          for (const c of cells(lines[j])) { const td = document.createElement("td"); mdInline(td, c); tr.appendChild(td); }
+	          tbody.appendChild(tr);
+	        }
+		        i = j - 1; table.appendChild(tbody);
+		        // 表格包裹器：长表格容器内横向滚动，禁止撑破气泡/页面
+		        const tw = document.createElement("div");
+		        tw.className = "md-table-wrap";
+		        tw.appendChild(table); frag.appendChild(tw); continue;
+	      }
+	    }
+	    if (line.trim() === "") { flushPara(); continue; }
+	    para.push(line);
+	  }
+	  flushPara();
+	  return frag;
+	}
+
+	// turn_diff 文本 → {stats, rows}（与移动端 parseTurnDiff 同一解析逻辑）。
+function parseTurnDiff(text) {
+  const lines = String(text || "").split("\n");
+  if (!lines.length || lines[0].indexOf("净摘要") < 0) return null;
+  const stat = lines[0].match(/新建 (\d+) \/ 修改 (\d+) \/ 删除 (\d+)/);
+  const stats = {
+    created: stat ? Number(stat[1]) : 0,
+    modified: stat ? Number(stat[2]) : 0,
+    deleted: stat ? Number(stat[3]) : 0,
+  };
+  const rows = [];
+  let inDiff = false;
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.startsWith("diff --kaelvoris ")) {
+      inDiff = true;
+      rows.push({ t: "head", x: line.replace("diff --kaelvoris ", "") });
+      continue;
+    }
+    if (inDiff) {
+      rows.push({ t: "line", c: line.startsWith("+") ? "add" : line.startsWith("-") ? "del" : "", x: line });
+      continue;
+    }
+    if (!line.trim()) continue;
+    rows.push({ t: "entry", c: line.includes("（新建）") ? "add" : line.includes("（修改）") ? "mod" : line.includes("（已删除）") ? "del" : "", x: line });
+  }
+  return { stats, rows };
+}
+
+// 任务完成「文件变更」折叠卡片（历史回放与实时 task.event 共用）。
+function appendTurnDiffCard(text) {
+  const td = parseTurnDiff(text);
+  if (!td) return;
+  const log = $("chatLog");
+  if (log.childElementCount === 1 && log.firstElementChild.classList.contains("empty")) log.innerHTML = "";
+  const card = document.createElement("details");
+  card.className = "td-card"; // 无 open = 默认折叠
+  const head = document.createElement("summary");
+  head.className = "td-head";
+  head.textContent = "📁 文件变更";
+  const parts = [["新建", td.stats.created, "add"], ["修改", td.stats.modified, "mod"], ["删除", td.stats.deleted, "del"]];
+  for (const [name, num, cls] of parts) {
+    if (num > 0) {
+      const b = document.createElement("span");
+      b.className = "td-badge " + cls;
+      b.textContent = name + " " + num;
+      head.appendChild(b);
+    }
+  }
+  const arrow = document.createElement("span");
+  arrow.className = "td-arrow";
+  arrow.textContent = "▾";
+  head.appendChild(arrow);
+  card.appendChild(head);
+  const body = document.createElement("div");
+  body.className = "td-body";
+  for (const row of td.rows) {
+    const d = document.createElement("div");
+    d.className = row.t === "head" ? "td-diff-head" : row.t === "line" ? "td-line " + row.c : "td-entry " + row.c;
+    d.textContent = row.x;
+    body.appendChild(d);
+  }
+  card.appendChild(body);
+  log.appendChild(card);
+  log.scrollTop = log.scrollHeight;
+}
+		function appendChatEvent(ev) {
+		  if (ev.kind === "started") { appendChatLine("user", ev.text || "", ev.ts); return; }
+	  if (ev.kind === "video" || ev.kind === "audio") {
+		// 媒体帧（generate_video / generate_speech 远端回报）：text 为
+		// {kind, path, fileName, mime, url} 载荷，url 为服务端 /img/ 镜像地址。
+		let url = "", name = "";
+		try { const pl = JSON.parse(ev.text || "{}"); url = pl.url || ""; name = pl.fileName || ""; } catch (e) { name = ev.text || ""; }
+		appendChatMedia(ev.kind, url, name);
+		return;
+	  }
+		  if (!ev.text) return;
+		  if (ev.kind === "turn_diff") { appendTurnDiffCard(ev.text); return; }
+		  if (ev.kind === "progress") { appendChatLine("bot", "⏳ " + ev.text, ev.ts); return; }
+			  const icon = ev.kind === "tool" ? "🛠 " : ev.kind === "error" ? "⚠️ " : "";
+		  appendChatLine("bot", icon + ev.text, ev.ts);
+	}
+	// appendChatMedia 聊天弹窗内嵌媒体卡（video/audio 播放器；无 URL 展示文件名占位）。
+	function appendChatMedia(kind, url, name) {
+	  const log = $("chatLog");
+	  if (log.childElementCount === 1 && log.firstElementChild.classList.contains("empty")) log.innerHTML = "";
+	  const wrap = document.createElement("div");
+	  wrap.className = "ev-line";
+		  if (url) {
+			// 服务端 /img/ 短期签名托管：渲染前换取签名 URL（兼容窗口内失败回退直链）。
+			resolveMedia(url, chatSession).then((signed) => {
+			  // 已换签的 URL 直接渲染；换取失败仍用原 URL（窗口内可播放）。
+			  wrap.innerHTML = kind === "video"
+			    ? '<div style="margin:4px 0"><div style="font-size:11.5px;color:var(--text-2);margin-bottom:4px">🎬 ' + esc(name || "生成视频") + '</div><video src="' + esc(signed) + '" controls preload="metadata" style="max-width:100%;max-height:280px;border-radius:8px;background:#000"></video></div>'
+			    : '<div style="margin:4px 0"><div style="font-size:11.5px;color:var(--text-2);margin-bottom:4px">🔊 ' + esc(name || "生成音频") + '</div><audio src="' + esc(signed) + '" controls style="width:100%;max-width:420px"></audio></div>';
+			  log.appendChild(wrap);
+			  log.scrollTop = log.scrollHeight;
+			});
+		  } else {
+		wrap.innerHTML = '<span style="font-size:12.5px;color:var(--text-2)">' + (kind === "video" ? "🎬 " : "🔊 ") + esc(name || (kind === "video" ? "视频已生成（PC 端本地保存）" : "音频已生成（PC 端本地保存）")) + '</span>';
+	  }
+	  log.appendChild(wrap);
+	  log.scrollTop = log.scrollHeight;
+	}
+function renderChatTodos(todos) {
+  chatTodos = todos || [];
+  const box = $("chatTodos");
+  if (!chatTodos.length) { box.classList.add("hidden"); return; }
+  const done = chatTodos.filter((t) => t.status === "completed").length;
+  const icon = { completed: "✅", in_progress: "🔄", pending: "⬜" };
+  box.innerHTML = '<div class="todo-title">任务清单（' + done + '/' + chatTodos.length + '）</div>' +
+    chatTodos.map((t) => `<div class="todo-item"><span>${icon[t.status] || "⬜"}</span><span class="${t.status === "completed" ? "todo-done-txt" : ""}">${esc(t.content)}</span></div>`).join("");
+  box.classList.remove("hidden");
+}
+function renderChatAsk() {
+  const box = $("chatAskBox");
+  if (chatAsk) {
+    $("chatAskText").textContent = "❓ " + chatAsk.text;
+    box.classList.remove("hidden");
+  } else {
+    box.classList.add("hidden");
+  }
+}
+window.openChat = openChat;
+async function openChat(sessionID, taskId) {
+  chatSession = sessionID;
+  chatTaskId = taskId || "";
+  chatAsk = null;
+  const t = tasks.find((x) => x.sessionId === sessionID);
+  // 手动命名优先：PC 端右键改名的会话标题随 Task.Title 下发，管理端聊天页跟随显示
+  $("chatTitle").textContent = t ? ((t.title || (t.text || "")).slice(0, 48) || "会话 " + sessionID.slice(0, 24)) : "会话 " + sessionID.slice(0, 24);
+  $("chatMeta").textContent = t ? `节点 ${(nodeByID(t.nodeId) || {}).name || t.nodeId} · ${t.status} · 模式 ${t.mode || "默认"}` : "";
+  $("chatLog").innerHTML = '<div class="empty">加载中…</div>';
+  renderChatTodos([]); renderChatAsk();
+  $("chatModal").classList.remove("hidden");
+  request("get.messages", { sessionID });
+}
+async function replyAsk(resp) {
+  if (!chatAsk) return;
+  const extra = resp === "messageResponse" ? ($("chatAskInput").value || "").trim() : "";
+  await request("ask.reply", { sessionId: chatAsk.sessionID, response: resp, text: extra });
+  appendChatLine("user", resp === "yes" ? "✅ 已同意" : resp === "no" ? "❌ 已拒绝" : "💬 " + extra, Date.now());
+  chatAsk = null; renderChatAsk();
+}
+
+// ---------- 详情 ----------
+	function openDetail(taskId) {
+	  currentDetail = taskId;
+	  const t = tasks.find((x) => x.id === taskId);
+	  $("detailTitle").textContent = t ? t.text.slice(0, 60) : "任务详情";
+	  $("detailMeta").textContent = t ? `节点 ${(nodeByID(t.nodeId) || {}).name || t.nodeId} · ${t.status} · ${fmtTime(t.createdAt)}` : "";
+	  $("detailLog").innerHTML = "";
+	  $("detailResult").textContent = t ? (t.result || t.error || "") : "";
+	  $("btnDetailCancel").classList.toggle("hidden", !t || (t.status !== "running" && t.status !== "pending"));
+	  $("btnDetailDelete").classList.toggle("hidden", !t || !deletable(t));
+	  $("detailModal").classList.remove("hidden");
+	  request("get.events", { taskId });
+	}
+function appendEvent(ev) {
+  const log = $("detailLog");
+  if (log.childElementCount === 1 && log.firstElementChild.classList.contains("empty")) log.innerHTML = "";
+  const div = document.createElement("div");
+  div.className = "ev-line";
+  const d = new Date(ev.ts || Date.now());
+  const p = (n) => String(n).padStart(2, "0");
+  div.innerHTML = `<span class="ev-time">${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}</span>` +
+    `<span class="ev-kind ev-kind-${esc(ev.kind)}">${esc(ev.kind)}</span>` +
+    `<span>${esc((ev.text || "").slice(0, 500))}</span>`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+window.openDetail = openDetail;
+
+// ---------- 节点设置（get.config/set.config，同移动端协议） ----------
+let cfgNodeId = "";   // 当前编辑节点
+let cfgSaving = false; // 保存中（真实确认来自节点 agent.config 回报，期间禁保存按钮）
+
+// fillCfgForm 服务端快照 → 表单（掩码密钥回填仅展示；保存时空值/掩码 = 不修改）。
+	function fillCfgForm(cfg) {
+	  cfg = cfg || {};
+	  $("cfgBaseURL").value = cfg.baseURL || "";
+	  $("cfgModel").value = cfg.model || "";
+	  $("cfgApiKey").value = ""; // 掩码密钥不回填，避免误保存
+	  $("cfgApiKey").placeholder = cfg.apiKey || "sk-****";
+	  $("cfgAutoApprove").checked = !!cfg.autoApprove;
+	  $("cfgContextWindow").value = cfg.contextWindow ? String(cfg.contextWindow) : "";
+	  $("cfgCondense").value = cfg.autoCondensePercent ? String(cfg.autoCondensePercent) : "";
+	  // 功能模型（图像/视频/语音）：掩码密钥不回填；其余字段原样展示。
+	  $("cfgImageBaseURL").value = cfg.imageGenBaseURL || "";
+	  $("cfgImageModel").value = cfg.imageGenModel || "";
+	  $("cfgImageKey").value = "";
+	  $("cfgImageKey").placeholder = cfg.imageGenAPIKey || "sk-****";
+	  $("cfgVideoBaseURL").value = cfg.videoGenBaseURL || "";
+	  $("cfgVideoModel").value = cfg.videoGenModel || "";
+	  $("cfgVideoKey").value = "";
+	  $("cfgVideoKey").placeholder = cfg.videoGenAPIKey || "sk-****";
+	  $("cfgSpeechBaseURL").value = cfg.speechBaseURL || "";
+	  $("cfgSpeechModel").value = cfg.speechModel || "";
+	  $("cfgSpeechAPIKey").value = "";
+	  $("cfgSpeechAPIKey").placeholder = cfg.speechAPIKey || "sk-****";
+	  $("cfgSpeechVoice").value = cfg.speechVoice || "";
+	}
+async function openNodeCfg(nodeId) {
+  const n = nodeByID(nodeId);
+  cfgNodeId = nodeId;
+  $("cfgTitle").textContent = "节点设置 · " + (n.name || nodeId);
+  $("cfgMeta").textContent = n.online ? "节点在线 · 修改立即生效（PC 端合并保存）" : "节点离线 · 仅展示最后已知配置，不可保存";
+  $("btnCfgSave").disabled = !n.online;
+  fillCfgForm({});
+  $("cfgModal").classList.remove("hidden");
+  // 应答即服务端缓存快照（离线节点返回最后已知值）；同时服务端已路由
+  // server.get_config，节点回传后经 node.config 广播覆盖刷新。
+  const res = await request("get.config", { nodeId });
+  if (res.type === "node.config" && res.payload && res.payload.config) {
+    fillCfgForm(res.payload.config);
+  } else if (res.type === "op.result" && res.payload && !res.payload.ok) {
+    toast((res.payload && res.payload.message) || "读取失败");
+  }
+}
+window.openNodeCfg = openNodeCfg;
+$("btnCfgClose").addEventListener("click", () => { $("cfgModal").classList.add("hidden"); cfgNodeId = ""; });
+$("cfgModal").addEventListener("click", (e) => { if (e.target === $("cfgModal")) { $("cfgModal").classList.add("hidden"); cfgNodeId = ""; } });
+$("btnCfgSave").addEventListener("click", async () => {
+  if (!cfgNodeId) return;
+  const payload = { nodeId: cfgNodeId };
+	  const baseURL = $("cfgBaseURL").value.trim();
+	  const model = $("cfgModel").value.trim();
+	  const apiKey = $("cfgApiKey").value.trim();
+	  if (baseURL) payload.baseURL = baseURL;
+	  if (model) payload.model = model;
+	  if (apiKey) payload.apiKey = apiKey; // 服务端/节点侧掩码形态不回写
+	  payload.autoApprove = $("cfgAutoApprove").checked;
+	  // 功能模型（图像/视频/语音）：字段有值才下发（留空 = 不修改）；
+	  // 密钥掩码形态不回写（与主 Key 同语义）。
+	  const ib = $("cfgImageBaseURL").value.trim(), im = $("cfgImageModel").value.trim(), ik = $("cfgImageKey").value.trim();
+	  if (ib) payload.imageGenBaseURL = ib;
+	  if (im) payload.imageGenModel = im;
+	  if (ik && ik.indexOf("****") < 0) payload.imageGenAPIKey = ik;
+	  const vb = $("cfgVideoBaseURL").value.trim(), vm = $("cfgVideoModel").value.trim(), vk = $("cfgVideoKey").value.trim();
+	  if (vb) payload.videoGenBaseURL = vb;
+	  if (vm) payload.videoGenModel = vm;
+	  if (vk && vk.indexOf("****") < 0) payload.videoGenAPIKey = vk;
+	  const sb = $("cfgSpeechBaseURL").value.trim(), sm = $("cfgSpeechModel").value.trim(), sk = $("cfgSpeechAPIKey").value.trim(), sv = $("cfgSpeechVoice").value.trim();
+	  if (sb) payload.speechBaseURL = sb;
+	  if (sm) payload.speechModel = sm;
+	  if (sk && sk.indexOf("****") < 0) payload.speechAPIKey = sk;
+	  if (sv) payload.speechVoice = sv;
+  const cw = parseInt($("cfgContextWindow").value, 10);
+  if (!isNaN(cw) && cw > 0) payload.contextWindow = cw;
+  const acp = parseInt($("cfgCondense").value, 10);
+  if (!isNaN(acp) && acp > 0 && acp < 100) payload.autoCondensePercent = acp;
+  // autoApprove 恒下发（勾选态即期望态；节点侧合并保存幂等）；其余字段留空 = 不修改。
+  cfgSaving = true;
+  $("btnCfgSave").disabled = true;
+  $("btnCfgSave").textContent = "保存中…";
+  const res = await request("set.config", payload, 10000);
+  // set.config 不回 op.result：确认来自节点 agent.config 回报 → node.config 广播；
+  // 路由失败（op.result）/节点失败（server.error）在 handle 中复位。
+  if (res.type === "server.error" && (res.payload || {}).message === "请求超时") {
+    cfgSaving = false;
+    $("btnCfgSave").disabled = false;
+    toast("保存超时，请检查节点状态");
+  }
+  $("btnCfgSave").textContent = "保存配置";
+});
+
+// ---------- 发布任务 ----------
+function openTaskModal() {
+	fillNodeSelect();
+	$("taskText").value = "";
+	const msel = $("taskMode");
+	if (msel) msel.value = "";
+	$("taskModal").classList.remove("hidden");
+}
+function fillNodeSelect() {
+  const sel = $("taskNode");
+  if (!sel) return;
+  const online = nodes.filter((n) => n.online);
+  sel.innerHTML = '<option value="">自动选择（第一个在线节点）</option>' +
+    online.map((n) => `<option value="${esc(n.id)}">${esc(n.name)}（在线）</option>`).join("");
+}
+$("btnNewTask").addEventListener("click", openTaskModal);
+$("btnNewTask2").addEventListener("click", openTaskModal);
+$("btnTaskCancel").addEventListener("click", () => $("taskModal").classList.add("hidden"));
+$("btnTaskSubmit").addEventListener("click", async () => {
+	const text = $("taskText").value.trim();
+	if (!text) return toast("请填写任务描述");
+	const nodeID = $("taskNode").value;
+	const mode = $("taskMode") ? $("taskMode").value : "";
+	const res = await request("create.task", { nodeId: nodeID, text, mode });
+  if (res.type === "task.created") {
+    $("taskModal").classList.add("hidden");
+    toast("任务已发布");
+    refreshTasks();
+  } else {
+    toast((res.payload && res.payload.message) || "发布失败");
+  }
+});
+$("taskModal").addEventListener("click", (e) => { if (e.target === $("taskModal")) $("taskModal").classList.add("hidden"); });
+
+	// ---------- 聊天弹窗交互 ----------
+	// 代码块复制委托：气泡经 innerHTML 渲染高亮 span，无法逐个绑事件，统一在
+	// chatLog 上委托 data-code-copy 点击；原文从 pre code.textContent 取。
+	$("chatLog").addEventListener("click", (e) => {
+	  const btn = e.target.closest && e.target.closest("[data-code-copy]");
+	  if (!btn) return;
+	  const wrap = btn.closest(".md-code");
+	  const code = wrap ? wrap.querySelector("pre code") : null;
+	  if (!code) return;
+	  try { navigator.clipboard.writeText(code.textContent || ""); toast("已复制"); }
+	  catch (err) { toast("复制失败"); }
+	});
+$("btnChatClose").addEventListener("click", () => { $("chatModal").classList.add("hidden"); chatSession = ""; chatAsk = null; });
+$("btnChatSend").addEventListener("click", () => {
+  const text = $("chatInput").value.trim();
+  if (!text || !chatSession) return;
+		  send("chat.send", { sessionId: chatSession, taskId: chatTaskId, text });
+		  appendChatLine("user", text, Date.now());
+  $("chatInput").value = "";
+});
+$("chatInput").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btnChatSend").click(); });
+$("btnChatCancel").addEventListener("click", async () => {
+  if (!chatTaskId) { toast("当前会话无关联任务"); return; }
+  await request("task.cancel", { taskId: chatTaskId });
+  toast("已请求取消");
+  refreshTasks();
+});
+$("btnAskYes").addEventListener("click", () => replyAsk("yes"));
+$("btnAskNo").addEventListener("click", () => replyAsk("no"));
+$("btnAskMsg").addEventListener("click", () => replyAsk("messageResponse"));
+$("chatAskInput").addEventListener("keydown", (e) => { if (e.key === "Enter") replyAsk("messageResponse"); });
+
+	// ---------- 详情交互 ----------
+	$("btnDetailClose").addEventListener("click", () => { $("detailModal").classList.add("hidden"); currentDetail = null; });
+	$("btnDetailCancel").addEventListener("click", async () => {
+	  if (!currentDetail) return;
+	  await request("task.cancel", { taskId: currentDetail });
+	  toast("已请求取消");
+	  $("detailModal").classList.add("hidden");
+	  currentDetail = null;
+	  refreshTasks();
+	});
+	$("btnDetailDelete").addEventListener("click", async () => {
+	  if (!currentDetail) return;
+	  await removeTask(currentDetail);
+	});
+
+	// ---------- 任务过滤事件 ----------
+	$("btnFltApply").addEventListener("click", applyTaskFilter);
+	$("btnFltReset").addEventListener("click", () => {
+	  $("fltStatus").value = ""; $("fltNode").value = ""; $("fltSearch").value = "";
+	  applyTaskFilter();
+	});
+	$("fltSearch").addEventListener("keydown", (e) => { if (e.key === "Enter") applyTaskFilter(); });
+	$("fltStatus").addEventListener("change", applyTaskFilter);
+	$("fltNode").addEventListener("change", applyTaskFilter);
+
+		// ---------- 修改密码（account.passwd） ----------
+		// 打开弹窗：默认改自己；账号管理页 admin 点他人行传入 target（重置语义无旧密码）。
+		let passTarget = "";
+		function openPassModal(target) {
+			passTarget = target || "";
+			const self = !passTarget || passTarget === curUser;
+			$("passTitle").textContent = self ? "修改密码" : "重置密码 · " + passTarget;
+			$("passMeta").textContent = self ? "账号 " + curUser + " · 修改后本端登录凭据同步更新" : "管理员重置：无需旧密码，改后请通知对方用新密码登录";
+			$("passOldField").style.display = self ? "" : "none";
+			$("passOld").value = ""; $("passNew").value = ""; $("passNew2").value = "";
+			$("passModal").classList.remove("hidden");
+			$(self ? "passOld" : "passNew").focus();
+		}
+		window.openPassModal = openPassModal;
+		$("btnChangePass").addEventListener("click", () => {
+			// 顶栏「账号设置」入口：切换到账号设置视图（含账号信息 + 修改密码）。
+			document.querySelectorAll(".side-item").forEach((x) => x.classList.remove("active"));
+			const nav = document.querySelector('.side-item[data-view="accountset"]');
+			if (nav) { nav.classList.add("active"); nav.click(); }
+			else { for (const el of document.querySelectorAll("[id^=view-]")) el.classList.add("hidden"); $("view-accountset").classList.remove("hidden"); $("viewTitle").textContent = "账号设置"; renderAccountSet(); }
+		});
+		$("btnPassCancel").addEventListener("click", () => $("passModal").classList.add("hidden"));
+		$("passModal").addEventListener("click", (e) => { if (e.target === $("passModal")) $("passModal").classList.add("hidden"); });
+		$("btnPassSave").addEventListener("click", async () => {
+			const self = !passTarget || passTarget === curUser;
+			const oldPass = self ? $("passOld").value : "";
+			const newPass = $("passNew").value, newPass2 = $("passNew2").value;
+			if (self && !oldPass) return toast("请输入旧密码");
+			if (newPass.length < 4 || newPass.length > 64) return toast("新密码长度需为 4~64 位");
+			if (newPass !== newPass2) return toast("两次输入的新密码不一致");
+			const res = await request("account.passwd", self ? { oldPass, newPass } : { user: passTarget, newPass });
+			if (res.type === "account.passwd_ok" && res.payload) {
+				$("passModal").classList.add("hidden");
+				if (res.payload.self) {
+					// 自己改密：本端凭据同步更新，避免 WS 重连后旧密码自动登录失败。
+					saveCreds({ user: curUser, pass: newPass, token: creds().token || "" });
+				}
+				toast("密码已更新");
+			} else {
+				toast((res.payload && res.payload.message) || (res.type === "server.error" ? (res.payload && res.payload.message) || "修改失败" : "修改失败"));
+			}
+		});
+
+		// ---------- 账号设置视图 ----------
+		// 渲染当前登录账号信息（所有用户可见，非仅 admin）。
+		function renderAccountSet() {
+			if (!curUser) return;
+			$("asUser").textContent = curUser;
+			$("asUser2").textContent = curUser;
+			const roleTxt = curRole === "admin" ? "管理员（可管理账号）" : "普通用户";
+			$("asRole").textContent = roleTxt;
+			$("asRole2").textContent = curRole === "admin" ? "管理员" : "用户";
+			$("asOld").value = ""; $("asNew").value = ""; $("asNew2").value = "";
+		}
+		window.renderAccountSet = renderAccountSet;
+		// 账号设置视图内的「确认修改」：复用 account.passwd（自己改密，验旧密码）。
+		$("btnAsSave").addEventListener("click", async () => {
+			const oldPass = $("asOld").value, newPass = $("asNew").value, newPass2 = $("asNew2").value;
+			if (!oldPass) return toast("请输入旧密码");
+			if (newPass.length < 4 || newPass.length > 64) return toast("新密码长度需为 4~64 位");
+			if (newPass !== newPass2) return toast("两次输入的新密码不一致");
+			const res = await request("account.passwd", { oldPass, newPass });
+			if (res.type === "account.passwd_ok" && res.payload) {
+				// 自己改密：本端凭据同步更新，避免 WS 重连后旧密码自动登录失败。
+				saveCreds({ user: curUser, pass: newPass, token: creds().token || "" });
+				$("asOld").value = ""; $("asNew").value = ""; $("asNew2").value = "";
+				toast("密码已更新");
+			} else {
+				toast((res.payload && res.payload.message) || (res.type === "server.error" ? (res.payload && res.payload.message) || "修改失败" : "修改失败"));
+			}
+		});
+
+		// ---------- 退出登录 ----------
+		// 修复：btnLogout 此前无事件绑定（点击无反应，凭据残留 localStorage，
+		// WS 断线重连后自动重新登录 → 无法退出账号）。对齐移动端 logout()
+		// （web/mobile/index.html）：清凭据 + 清登录态；已认证的 WS 无法在服务端
+		// 注销，故置空 onclose（阻断自动重连）后主动断开，300ms 后重连一个
+		// 未认证连接 —— onopen 因无凭据不再自动 auth，停留在登录页等待重新输入。
+		// 退出逻辑（顶栏 btnLogout 与侧边栏 btnLogoutSide 共用）。
+		function doLogout() {
+			saveCreds({});
+			authed = false;
+			curUser = ""; curRole = "";
+			$("userChip").classList.add("hidden");
+			$("appView").classList.remove("active");
+			$("loginView").classList.remove("hidden");
+			$("loginUser").value = ""; $("loginPass").value = "";
+			$("loginErr").textContent = "";
+			setConn(false, "未登录");
+			if (ws) { try { ws.onclose = null; ws.close(); } catch (e) {} ws = null; }
+			// 停止自动重连：下次 connect 由登录动作触发。
+			setTimeout(connect, 300);
+			toast("已退出登录");
+		}
+		window.doLogout = doLogout;
+		$("btnLogout").addEventListener("click", doLogout);
+		$("btnLogoutSide").addEventListener("click", doLogout);
+
+	// ---------- 数据加载 ----------
+	async function refreshTasks() { await request("list.tasks", {}); }
+async function refreshAll() {
+  await request("list.nodes", {});
+  await request("list.tasks", {});
+  await request("list.sessions", {});
+  if (curRole === "admin") await request("list.accounts");
+}
+// 服务端在认证后主动推送 nodes/tasks；此处补拉事件历史。
+// list.sessions 为扩展消息类型（handleClientMessage 未覆盖时回 op.result，前端忽略）。
+
+// 回前台探活 + 快照刷新（移动端同款语义）：后台期间推送丢失/积压，回前台
+// 重连已死链路、探活存活链路，并拉一次权威快照修正滞留态。
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible") return;
+  if (!ws || ws.readyState !== 1) {
+    connect();
+  } else {
+    try { ws.send(JSON.stringify({ type: "client.ping", ts: Date.now() })); } catch (e) {}
+  }
+  if (authed) refreshAll();
+});
+
+// 兕底权威快照轮询（30s · 仅前台已登录且链路就绪时）：WS 推送丢失/积压期间
+// 状态仍能以服务端为准周期收敛（PC 端执行完 → 最迟 30s 同步到管理端）。
+setInterval(() => {
+  if (authed && document.visibilityState === "visible" && ws && ws.readyState === 1) {
+    request("list.nodes", {});
+    request("list.tasks", {});
+  }
+}, 30000);
+
+// 启动。
+$("footAddr").textContent = location.host;
+setConn(false, "连接中…");
+connect();
+</script>
+</body>
+</html>

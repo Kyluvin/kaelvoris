@@ -1,0 +1,9 @@
+{
+  "desc": "群消息未知 hookID（未配置群组乱投 → 404，防未分配群组投递）",
+  "kind": "group",
+  "hook": "hook-unknown-9",
+  "body": { "MsgId": "XT-grp-replay-404", "Payload": { "Content": "不应被受理" } },
+  "want": {
+    "status": 404
+  }
+}

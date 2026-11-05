@@ -1,0 +1,16 @@
+{
+  "id": "rea",
+  "name": "REA 逆向一切",
+  "version": "6.5.0",
+  "description": "逆向工程一切（Reverse Engineer Anything）：原生二进制 / JS·Electron 应用 / .NET 程序集 / 网站的逆向分析 MCP。委托 npx rea-agents 官方 MCP 服务器（需 Node 22+），工具 open_binary / binary_session / analyze_javascript_application 等，分析本地运行并输出证据链。附带 reverse-engineer-anything 工作流技能。",
+  "author": "morluto/rea (MIT) · Kaelvoris 整合",
+  "source": "builtin",
+  "mcp": {
+    "transport": "stdio",
+    "command": "bin/rea-bridge.exe",
+    "env": {
+      "REA_BRIDGE_CMD": "npx -y rea-agents@latest mcp"
+    }
+  },
+  "skills": ["skills/reverse-engineer-anything"]
+}

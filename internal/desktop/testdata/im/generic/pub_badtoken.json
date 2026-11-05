@@ -1,0 +1,20 @@
+{
+  "desc": "公共号回调验签失败样本（PubToken 与渠道密钥不匹配 → 403 拒绝，防仿冒）",
+  "kind": "pub",
+  "sign": false,
+  "body": {
+    "ServiceType": "xt",
+    "PubAccId": "XT-test-pub-001",
+    "FromUserName": "c51b52e8-xxx",
+    "ToUserName": "XT-test-pub-001",
+    "MsgType": "text",
+    "MsgId": "XT-replay-pub-003",
+    "CreateTime": "1396593601000",
+    "PubToken": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+    "Payload": { "Content": "仿冒载荷应当被验签拒绝" }
+  },
+  "want": {
+    "status": 403,
+    "parseOk": true
+  }
+}

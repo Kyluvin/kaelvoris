@@ -1,0 +1,200 @@
+/* ══════════════════════════════════════════════════════════════════
+   Kaelvoris 桌面端 · 设计令牌（唯一视觉事实源）
+   体系：Claude (Anthropic) 暖色系转译 —— 暖黑画布 / 暖灰阶 / 陶土强调
+   原则：简约克制 · 低干扰 · 深色优先 · ring 阴影 · 拒绝厚重后台感
+   硬性禁止：高饱和大红大紫、渐变背景、粗黑分割线、厚重多层阴影
+   ══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Surface（深色 · 暖黑阶，全部带黄棕底调）──────────────── */
+  --bg-page: #141413;            /* 页面主背景：Anthropic Near Black */
+  --bg-card: #1E1D1B;            /* 卡片 / 面板：比页面亮一档的暖黑 */
+  --bg-elevated: #262523;        /* 浮层 / 用户气泡（再亮一档）*/
+  --bg-inset: #191817;           /* 代码块 / 内嵌区（更深一档）*/
+  --bg-hover: rgba(245, 244, 237, 0.045);   /* 行 hover 暖白低透明 */
+  --bg-active: rgba(217, 119, 87, 0.10);    /* 选中态：珊瑚低透明底 */
+
+  /* ── Border（弱化分割，优先背景色差）────────────────────────── */
+  --border: #35332F;             /* 主边框：暖炭 */
+  --border-weak: rgba(245, 244, 237, 0.07); /* 弱分割线 */
+
+  /* ── 主色：陶土 / 珊瑚（暖、土、刻意去科技感）──────────────── */
+  --primary: #D97757;            /* Coral：深色面文字/图标强调 */
+  --primary-strong: #C96442;     /* Terracotta：实心按钮/品牌面 */
+  --primary-hover: #E08A6D;
+  --primary-active: #C96442;
+  --primary-tint: rgba(217, 119, 87, 0.13);
+  --on-primary: #FAF9F5;         /* 主色底上的文字：Ivory */
+
+  /* ── 文字层级（暖灰阶）─────────────────────────────────────── */
+  --text-1: #F5F4ED;             /* 主文本：Parchment */
+  --text-2: #B0AEA5;             /* 次要文本：Warm Silver */
+  --text-3: #87867F;             /* 占位 / 提示：Stone Gray */
+
+  /* ── 状态色（暖调，深色面可读档）──────────────────────────── */
+  --success: #3FB968;
+  --warning: #D9963E;
+  --danger: #E06553;
+
+  /* ── 状态色 tint（低透明底，供徽标/提示卡使用；深色面预设）── */
+  --success-tint: rgba(63, 185, 104, 0.14);
+  --warning-tint: rgba(217, 150, 62, 0.12);
+  --danger-tint: rgba(224, 101, 83, 0.14);
+  --danger-tint-strong: rgba(224, 101, 83, 0.16);
+
+  /* ── 圆角：标准 10px / 小控件 6px / 大容器 14px ────────────── */
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-lg: 14px;
+
+  /* ── 阴影：ring 为主，浮层单层柔和（禁厚重多层）────────────── */
+  --ring: 0 0 0 1px var(--border-weak);
+  --shadow-card: none;           /* 卡片用边框，不加投影 */
+  --shadow-overlay: 0 8px 32px rgba(0, 0, 0, 0.35);
+
+  /* ── 字体 ──────────────────────────────────────────────────── */
+  /* 显示层字体（标题/空态/大数字）：Sora 几何感 + 中文字体兜底；
+     本地未安装时自动回退 Segoe UI，不引网络字体（桌面离线可用） */
+  --font-display: "Sora", "Segoe UI Variable Display", "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-ui: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;   /* 仅品牌字符/空态标题 */
+  --font-mono: "Cascadia Code", "Consolas", "Menlo", monospace;
+
+  /* ── 字号（四档 + 等宽，禁用 11.5/12.5/13 等中间值）────────── */
+  --fs-title: 16px;              /* 面板标题 / 空态主文案 */
+  --fs-body: 14px;               /* 正文 / 输入 / 消息流 */
+  --fs-caption: 12px;            /* 辅助 / 按钮 small / meta */
+  --fs-micro: 11px;              /* 徽标 / 时间戳 / 工具名 */
+  --fs-mono: 12px;               /* 代码 / diff / 日志 */
+  --lh: 1.65;
+  /* 展示级字号（空态主标 / 大数字 / 欢迎语）：display 层专用 */
+  --fs-display: 28px;
+  --fs-display-sm: 20px;
+
+  /* ── 间距：8px 基准（区块 16/24；组件 8/12/16）──────────────── */
+  --gap-sm: 8px;
+  --gap: 12px;
+  --gap-lg: 16px;
+  --pad-block: 16px;
+  --pad-page: 24px;
+
+  /* ── 布局：三栏 + 会话列宽 ────────────────────────────────── */
+  --rail-w: 52px;                /* 最左图标轨 */
+  --sidebar-w: 268px;            /* 左侧会话导航 */
+  --rightbar-w: 320px;           /* 右侧工作面板 */
+  --topbar-h: 52px;              /* 主区顶栏 */
+  --chat-max: 860px;             /* 消息流最大列宽（居中）*/
+
+  /* ── 动效：低速轻量（禁弹跳/闪烁/旋转/大缩放）──────────────── */
+  --transition: 180ms ease;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);   /* 入场/悬浮：快出缓停，比 linear 高级 */
+  --ease-spring: cubic-bezier(0.34, 1.3, 0.64, 1); /* 轻弹性：按压回弹（幅度≤1.05 不花哨） */
+  --shadow-lift: 0 4px 14px rgba(0, 0, 0, 0.16);   /* 卡片悬浮统一投影（card-lift 同源） */
+
+  /* ── 滚动条 ────────────────────────────────────────────────── */
+  --scrollbar-w: 8px;
+  --scrollbar-thumb: rgba(245, 244, 237, 0.12);
+  --scrollbar-thumb-hover: rgba(245, 244, 237, 0.24);
+
+  /* ── Arco 通道归一化（Arco 组件 rgb(var(--primary-6)) 等通道引用 → 暖色系）──
+     1~7 阶：1 最深/最淡 tint · 6 主色 · 7 次亮；数字为 RGB 通道，供 rgb() 引用。
+     深色面主色 6 阶 #D97757 对比度 ≈6.1:1，浅色面 #C96442 ≈4.7:1（≥4.5:1 达标）。
+  ⚠ 仅在组件库未覆盖时生效；组件内自定义颜色优先走 --text-* 与 --success 等语义令牌。 */
+  --primary-1: 74, 37, 26;
+  --primary-2: 109, 51, 35;
+  --primary-3: 156, 75, 51;
+  --primary-4: 184, 88, 59;
+  --primary-5: 224, 138, 109;   /* hover */
+  --primary-6: 217, 119, 87;    /* 主色 */
+  --primary-7: 201, 100, 66;    /* strong */
+  --success-1: 20, 74, 42;
+  --success-2: 28, 96, 56;
+  --success-3: 38, 124, 72;
+  --success-4: 47, 149, 87;
+  --success-5: 55, 168, 97;
+  --success-6: 63, 185, 104;    /* --success */
+  --success-7: 85, 201, 122;
+  --warning-1: 88, 55, 20;
+  --warning-2: 120, 75, 25;
+  --warning-3: 155, 98, 31;
+  --warning-4: 182, 115, 37;
+  --warning-5: 206, 132, 43;
+  --warning-6: 217, 150, 62;    /* --warning */
+  --warning-7: 229, 168, 82;
+  --danger-1: 79, 35, 29;
+  --danger-2: 116, 49, 41;
+  --danger-3: 150, 62, 52;
+  --danger-4: 178, 75, 62;
+  --danger-5: 202, 88, 72;
+  --danger-6: 224, 101, 83;     /* --danger */
+  --danger-7: 232, 121, 105;
+}
+
+/* ── 浅色主题（html.light 切换）：Claude 原生 Parchment 暖纸 ── */
+html.light {
+  --bg-page: #F5F4ED;            /* Parchment 暖纸画布 */
+  --bg-card: #FAF9F5;            /* Ivory 卡片 */
+  --bg-elevated: #FFFFFF;
+  --bg-inset: #EFEDE4;
+  --bg-hover: rgba(20, 20, 19, 0.05);
+  --bg-active: rgba(201, 100, 66, 0.09);
+
+  --border: #E3E1D7;
+  --border-weak: rgba(20, 20, 19, 0.08);
+
+  --primary: #C96442;            /* Terracotta */
+  --primary-strong: #C96442;
+  --primary-hover: #B5563A;
+  --primary-active: #A44D33;
+  --primary-tint: rgba(201, 100, 66, 0.11);
+  --on-primary: #FAF9F5;
+
+  --text-1: #141413;             /* Anthropic Near Black */
+  --text-2: #5E5D59;             /* Olive Gray */
+  --text-3: #87867F;             /* Stone Gray */
+
+  --success: #17803D;
+  --warning: #B45309;
+  --danger: #B53333;             /* Error Crimson */
+
+  --shadow-overlay: 0 8px 32px rgba(0, 0, 0, 0.12);
+
+  --scrollbar-thumb: rgba(20, 20, 19, 0.16);
+  --scrollbar-thumb-hover: rgba(20, 20, 19, 0.28);
+
+  /* ── Arco 通道归一化（浅色面）：文字用色加深保 ≥4.5:1 ──────────── */
+  --primary-1: 255, 243, 238;
+  --primary-2: 253, 225, 213;
+  --primary-3: 246, 190, 166;
+  --primary-4: 230, 150, 115;
+  --primary-5: 214, 125, 92;
+  --primary-6: 201, 100, 66;    /* --primary（浅面文字）≈4.7:1 */
+  --primary-7: 180, 86, 58;     /* hover */
+  --success-1: 230, 250, 238;
+  --success-2: 197, 240, 214;
+  --success-3: 144, 220, 175;
+  --success-4: 88, 190, 126;
+  --success-5: 56, 154, 94;
+  --success-6: 23, 128, 61;     /* --success（浅面） */
+  --success-7: 18, 104, 50;
+  --warning-1: 252, 244, 224;
+  --warning-2: 246, 227, 184;
+  --warning-3: 233, 196, 122;
+  --warning-4: 214, 164, 72;
+  --warning-5: 190, 128, 43;
+  --warning-6: 180, 83, 9;      /* --warning（浅面） */
+  --warning-7: 154, 70, 8;
+  --danger-1: 250, 235, 234;
+  --danger-2: 244, 210, 207;
+  --danger-3: 235, 168, 162;
+  --danger-4: 222, 126, 119;
+  --danger-5: 204, 98, 90;
+  --danger-6: 181, 51, 51;      /* --danger（浅面） */
+  --danger-7: 156, 44, 44;
+
+  /* 浅色面状态 tint（低透明底） */
+  --success-tint: rgba(23, 128, 61, 0.10);
+  --warning-tint: rgba(180, 83, 9, 0.10);
+  --danger-tint: rgba(181, 51, 51, 0.10);
+  --danger-tint-strong: rgba(181, 51, 51, 0.12);
+}

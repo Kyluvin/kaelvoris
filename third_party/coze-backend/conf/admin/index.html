@@ -1,0 +1,3476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coze Studio 管理后台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+        }
+
+        .admin-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            padding: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ecf0f1;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            margin: 0;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 16px;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+
+        .nav-link.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .nav-icon {
+            margin-right: 12px;
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-arrow {
+            margin-left: auto;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .has-submenu .nav-arrow {
+            transform: rotate(-90deg);
+        }
+
+        .has-submenu.expanded .nav-arrow {
+            transform: rotate(0deg);
+        }
+
+        .submenu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            background: rgba(0, 0, 0, 0.1);
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .has-submenu.expanded .submenu {
+            max-height: 200px;
+        }
+
+        .submenu-item {
+            margin: 0;
+        }
+
+        .submenu-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px 10px 52px;
+            color: #95a5a6;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .submenu-link:hover {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+
+        .submenu-link.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .submenu-icon {
+            margin-right: 8px;
+            font-size: 14px;
+            width: 16px;
+            text-align: center;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e1e8ed;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .page-header {
+            margin: 0;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0 0 5px 0;
+        }
+
+        .page-description {
+            color: #6c757d;
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .content-frame {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            min-height: calc(100vh - 200px);
+            overflow: hidden;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 400px;
+            color: #6c757d;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 40px;
+            color: #dc3545;
+        }
+
+        .error-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            padding: 0 25px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            padding-top: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            color: rgba(255,255,255,0.8);
+            font-size: 16px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+            
+            .content-area {
+                padding: 20px;
+            }
+            
+            .top-bar {
+                padding: 15px 20px;
+            }
+        }
+
+        .welcome-content {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .welcome-icon {
+            font-size: 64px;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .welcome-title {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .welcome-text {
+            color: #7f8c8d;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+            /* 透明浮层样式（合并自 config.html） */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001; /* 保证高于所有模态层（9999） */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .overlay-content {
+            background: white;
+            padding: 24px 32px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .overlay.show .overlay-content {
+            transform: scale(1);
+        }
+
+        .overlay-content.success {
+            border-left: 4px solid #16a34a;
+            color: #16a34a;
+        }
+
+        .overlay-content.error {
+            border-left: 4px solid #dc2626;
+            color: #dc2626;
+        }
+
+        .overlay-content .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .overlay-content.success .icon::before {
+            content: "✓";
+        }
+
+        .overlay-content.error .icon::before {
+            content: "✗";
+        }
+
+        .overlay-content .message {
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .action-buttons {
+            margin-top: 30px;
+            padding-top: 24px;
+            border-top: 2px solid #f1f3f4;
+            text-align: center;
+        }
+</style>
+</head>
+<body>
+    <div class="admin-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="3" width="7" height="7" rx="1" fill="#4A90E2"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1" fill="#4A90E2"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1" fill="#4A90E2"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1" fill="#4A90E2"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">Coze Studio</span>
+                </div>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item has-submenu">
+                    <a href="#" class="nav-link" data-page="config">
+                        <span class="nav-icon">⚙️</span>
+                        配置管理
+                        <span class="nav-arrow">▼</span>
+                    </a>
+                    <ul class="submenu">
+                        <li class="submenu-item">
+                            <a href="#" class="submenu-link active" data-page="basic-config">
+                                <span class="submenu-icon">🔧</span>
+                                基础配置
+                            </a>
+                        </li>
+                        <li class="submenu-item">
+                            <a href="#" class="submenu-link" data-page="model-management">
+                                <span class="submenu-icon">🤖</span>
+                                模型管理
+                            </a>
+                        </li>
+                        <li class="submenu-item">
+                            <a href="#" class="submenu-link" data-page="knowledge-config">
+                                <span class="submenu-icon">📚</span>
+                                知识库配置
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">👤</div>
+                    <div>
+                        <div id="userName">管理员</div>
+                        <div id="userStatus" style="font-size: 12px; opacity: 0.7;">在线</div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="top-bar" style="display: none;">
+                <div class="page-header">
+                    <h1 class="page-title" id="pageTitle">基础配置</h1>
+                    <p class="page-description" id="pageDescription">管理和配置基础配置</p>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <div class="content-frame">
+                    <div id="pageContent">
+                        <div class="loading">
+                            <div class="loading-spinner"></div>
+                            <span>${t('loading')}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 全局透明浮层（来自 config.html） -->
+    <div id="overlay" class="overlay">
+        <div id="overlayContent" class="overlay-content">
+            <div class="icon"></div>
+            <div class="message" id="overlayMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        // i18n（简易字典 + 应用函数）
+        const I18N = {
+            'zh-CN': {
+                'nav.config': '配置管理',
+                'nav.basic': '基础配置',
+                'nav.model': '模型管理',
+                'nav.knowledge': '知识库配置',
+
+                'page.basic.title': '基础配置',
+                'page.basic.desc': '系统基础配置管理',
+                'page.model.title': '模型管理',
+                'page.model.desc': 'AI模型配置和管理',
+                'page.knowledge.title': '知识库配置',
+                'page.knowledge.desc': '知识库设置和管理',
+                'page.default.title': '页面',
+                'page.default.desc': '页面描述',
+                'page.contentArea': '这里是{title}页面的内容区域。',
+
+                'loading': '加载中...',
+                'status.online': '在线',
+                'error.generic': '发生错误',
+                'success.generic': '操作成功',
+
+                'quick.title': '快速操作',
+                'quick.new': '新建',
+                'quick.import': '导入',
+                'quick.export': '导出',
+                'quick.settings': '设置',
+
+                'feature.module1': '功能模块 1',
+                'feature.module2': '功能模块 2',
+                'feature.module3': '功能模块 3',
+                'feature.desc': '相关功能描述和操作入口',
+
+                'user.admin': '管理员',
+
+                'basic.loading': '正在加载配置...',
+                'basic.label.admin_emails': '管理员邮箱',
+                'basic.placeholder.email_input': '输入邮箱，按回车添加',
+                'basic.placeholder.coze_api_token': '输入您的 Coze API Token',
+                'basic.help.coze_api_token_apply': '前往此链接申请 Coze API Token',
+                'basic.label.enable_coze_saas': '启用 Coze SaaS 插件',
+                'basic.label.disable_user_registration': '禁止用户注册',
+                'basic.label.whitelist_emails': '允许注册的白名单邮箱',
+                'basic.help.whitelist': '当禁止用户注册时，只有白名单中的邮箱才能注册',
+                'basic.label.python_env': 'Python 代码运行环境(修改后需要重启服务生效)',
+                'basic.help.local_risk': 'Local 有被攻击的安全风险，生产环境慎用，建议使用 Sandbox 模式。',
+                'basic.sandbox.title': 'Sandbox 配置',
+                'basic.label.allow_env': '允许读取的环境变量',
+                'basic.label.allow_read': '允许读取的目录地址',
+                'basic.label.allow_write': '允许写的目录地址',
+                'basic.label.allow_run': '允许执行的命令',
+                'basic.label.allow_net': '允许访问的网络地址',
+                'basic.label.allow_ffi': '允许访问的 lib 库',
+                'basic.label.node_modules_dir': 'Node Modules 目录地址',
+                'basic.label.timeout_seconds': '代码执行超时时间（秒）',
+                'basic.label.memory_limit_mb': '内存限制（MB）',
+
+                'server.title': '服务器配置',
+                'server.host.label': '服务器主机地址',
+                'server.host.help': '格式：http(s)://主机名:端口号 , oauth 鉴权会用到',
+
+                'btn.save': '保存配置',
+                'btn.reload': '重新加载',
+
+                'error.invalid_email': '请输入有效的邮箱地址',
+                'error.email_exists': '该邮箱已存在',
+                'error.admin_email_required': '请至少设置一个管理员邮箱',
+                'error.server_host_required': '请填写服务器主机地址',
+                'error.invalid_admin_emails': '管理员邮箱存在无效地址：{list}',
+                'error.invalid_whitelist_emails': '白名单邮箱存在无效地址：{list}',
+                'error.save_failed': '保存失败',
+                'error.save_failed_json': '保存失败：请检查服务是否启动并返回有效 JSON',
+                'error.load_failed_empty': '加载失败：返回数据为空',
+                'error.load_failed_json': '加载失败：请检查服务是否启动并返回有效 JSON',
+                'success.saved': '保存成功',
+                'success.saved_restart_required': '保存成功，服务需要重启生效',
+                'overlay.saving': '正在保存配置...',
+                'error.missing_required': '请填写必填项：{list}',
+                'error.api_error': '接口返回错误',
+                'error.save_failed_reason': '保存失败: {reason}',
+                'page.manage_config': '管理和配置 {title}',
+                'page.empty': '页面内容为空',
+                'help.title': '帮助文档',
+                'help.quickstart.title': '🚀 快速开始',
+                'help.quickstart.step1': '首先配置基础设置，包括 API 密钥和系统参数',
+                'help.quickstart.step2': '添加和配置 AI 模型',
+                'help.quickstart.step3': '创建知识库并上传文档',
+                'help.quickstart.step4': '开始使用您的 AI 助手',
+                'help.features.title': '📚 功能说明',
+                'help.features.basic': '基础配置：系统设置、API 配置、安全设置',
+                'help.features.model': '模型管理：添加、编辑、删除 AI 模型',
+                'help.features.kb': '知识库：文档上传、索引管理、检索配置',
+                'help.support.title': '🔧 技术支持',
+                'help.support.contact': '如果您遇到问题，请联系技术支持团队',
+                'help.support.email': '📧 邮箱: {email}',
+                'help.support.phone': '📞 电话: {phone}',
+                'export.success': '配置文件已导出！',
+                'error.page_load_failed_reason': '页面加载失败: {reason}',
+
+                // 通用
+                'common.cancel': '取消',
+                'common.save': '保存',
+                'common.delete': '删除',
+                'common.enabled': '启用',
+                'common.disabled': '停用',
+                'common.on': '开启',
+                'common.off': '关闭',
+                'common.saving': '保存中...',
+                'common.not_configured': '未配置',
+                'common.unknown_error': '未知错误',
+
+                // 模型管理
+                'model.list.title': '模型列表',
+                'model.provider.count': '提供方数量：{count}',
+                'model.provider.model_count': '模型数量：{count}',
+                'model.actions.add': '添加模型',
+                'model.provider.unnamed': '未命名提供方',
+                'model.provider.unknown': '未知提供方',
+                'model.unnamed': '未命名模型',
+
+                'model.field.id': 'ID',
+                'model.field.model': 'Model',
+                'model.field.api_key': 'API Key',
+                'model.field.base64_url': 'Base64URL',
+                'model.field.region': 'Region',
+                'model.field.backend': 'Backend',
+                'model.field.project': 'Project',
+                'model.field.location': 'Location',
+                'model.field.azure': 'By Azure',
+                'model.field.api_version': 'API Version',
+                'model.field.endpoint': '接口地址',
+                'model.field.thinking_type': 'Thinking Type',
+                'model.thinking_type.default': 'Default',
+                'model.thinking_type.enable': 'Enable',
+                'model.thinking_type.disable': 'Disable',
+                'model.thinking_type.auto': 'Auto',
+
+                'model.error.load_list_failed': '加载模型列表失败',
+                'model.error.render_page_failed': '渲染模型页面失败',
+                'model.error.delete_missing_id': '删除模型失败: 缺少模型ID',
+                'model.confirm.delete': '确认删除该模型？删除后不可恢复',
+                'model.error.delete_invalid_json': '删除模型失败: 返回结果不是有效 JSON',
+                'model.error.delete_failed': '删除模型失败',
+                'model.error.open_modal_failed': '无法打开添加模型表单：组件未渲染',
+                'model.error.provider_unrecognized': '无法识别模型提供方，请从提供方卡片点击“添加模型”。',
+                'model.error.missing_required_with_api': '请填写必填项：模型展示名称、model、api_key',
+                'model.error.missing_required': '请填写必填项：模型展示名称、model',
+                'model.error.create_read_failed': '创建模型失败: 无法读取响应内容',
+                'model.create.success': '创建成功',
+                'model.error.create_failed': '创建模型失败',
+
+                // 添加模型弹窗
+                'model.modal.add.title': '添加模型',
+                'model.modal.display_name.label': '模型显示名称',
+                'model.modal.display_name.placeholder': '例如：Doubao Seed 1.6',
+                'model.modal.model.label': 'Model',
+                'model.modal.model.placeholder': '例如：doubao-seed-1-6-250615',
+                'model.modal.api_key.label': 'API Key',
+                'model.modal.api_key.placeholder': '密钥',
+                'model.modal.base_url.label': 'Base URL',
+                'model.modal.base_url.placeholder': '选填',
+                'model.modal.enable_base64_url.label': '启用 Base64 URL',
+                'model.modal.enable_base64_url.help': '使用 base64 编码图片、文件、音频、视频 URL 给模型',
+                'model.modal.ark_region.label': 'Region（Ark）',
+                'model.modal.ark_region.placeholder': '选填，例如：cn-beijing',
+                'model.modal.azure.label': '使用 Azure',
+                'model.modal.azure.help': 'OpenAI 设置：勾选表示通过 Azure 使用',
+                'model.modal.openai_api_version.label': 'OpenAI API Version',
+                'model.modal.openai_api_version.placeholder': '选填，例如：2024-06-01',
+                'model.modal.gemini_backend.label': 'Backend',
+                'model.modal.gemini_backend.unspecified': '未指定',
+                'model.modal.gemini_backend.gemini_api': 'Gemini API',
+                'model.modal.gemini_backend.vertex_ai': 'Vertex AI',
+                'model.modal.gemini_project.label': 'Project',
+                'model.modal.gemini_project.placeholder': '选填，例如：my-project',
+                'model.modal.gemini_location.label': 'Location',
+                'model.modal.gemini_location.placeholder': '选填，例如：us-central1',
+                'model.modal.thinking_type.label': 'Thinking Type',
+                'model.modal.thinking_type.enable': 'Enable',
+                'model.modal.thinking_type.disable': 'Disable',
+                'model.modal.thinking_type.auto': 'Auto',
+                
+                // 知识库配置
+                'knowledge.error.load_failed_json': '加载知识库配置失败: 返回结果不是有效 JSON',
+                'knowledge.error.load_failed_msg': '加载知识库配置失败: {msg}',
+                'knowledge.error.load_failed_empty': '加载知识库配置失败: 返回数据为空',
+                'knowledge.error.load_failed': '加载知识库配置失败',
+                'knowledge.error.load_failed_reason': '加载知识库配置失败: {reason}',
+                'knowledge.log.local_preview_no_demo': '本地预览：不使用示例数据',
+                'knowledge.section.embedding': 'Embedding 配置',
+                'knowledge.connection': '{name} 连接',
+                'knowledge.section.rerank': 'Rerank 配置',
+                'knowledge.section.ocr': 'OCR 配置',
+                'knowledge.section.parser': 'Parser 配置',
+                'knowledge.section.builtin_model': '知识库内置模型配置',
+                'knowledge.label.choose_builtin_model': '选择内置模型',
+                'knowledge.placeholder.select_model': '请选择模型',
+                'knowledge.loading.model_list': '正在加载模型列表...',
+                'knowledge.empty.model_list': '未获取到模型列表',
+                'knowledge.placeholder.model_fallback': '模型 #{id}',
+                'knowledge.tip.setup_model_first': '请先配置模型',
+                'knowledge.error.model_list_load_failed': '加载模型列表失败',
+                'knowledge.error.render_failed': '渲染知识库配置失败',
+                'knowledge.error.save_failed': '保存配置失败'
+            },
+            'en-US': {
+                'nav.config': 'Configuration',
+                'nav.basic': 'Basic Config',
+                'nav.model': 'Model Management',
+                'nav.knowledge': 'Knowledge Config',
+
+                'page.basic.title': 'Basic Config',
+                'page.basic.desc': 'System basic configuration',
+                'page.model.title': 'Model Management',
+                'page.model.desc': 'AI model configuration and management',
+                'page.knowledge.title': 'Knowledge Config',
+                'page.knowledge.desc': 'Knowledge base settings and management',
+                'page.default.title': 'Page',
+                'page.default.desc': 'Page Description',
+                'page.contentArea': 'This is the content area of {title}.',
+
+                'loading': 'Loading...',
+                'status.online': 'Online',
+                'error.generic': 'Error occurred',
+                'success.generic': 'Success',
+
+                'quick.title': 'Quick Actions',
+                'quick.new': 'New',
+                'quick.import': 'Import',
+                'quick.export': 'Export',
+                'quick.settings': 'Settings',
+
+                'feature.module1': 'Feature Module 1',
+                'feature.module2': 'Feature Module 2',
+                'feature.module3': 'Feature Module 3',
+                'feature.desc': 'Feature description and actions',
+
+                'user.admin': 'Admin',
+
+                'basic.loading': 'Loading configuration...',
+                'basic.label.admin_emails': 'Admin Emails',
+                'basic.placeholder.email_input': 'Type email, press Enter to add',
+                'basic.placeholder.coze_api_token': 'Enter your Coze API Token',
+                'basic.help.coze_api_token_apply': 'Apply for a Coze API Token here',
+                'basic.label.enable_coze_saas': 'Enable Coze SaaS plugin',
+                'basic.label.disable_user_registration': 'Disable user registration',
+                'basic.label.whitelist_emails': 'Whitelist emails allowed to register',
+                'basic.help.whitelist': 'When registration is disabled, only whitelisted emails can register.',
+                'basic.label.python_env': 'Python Execution Environment(Change requires service restart)',
+                'basic.help.local_risk': 'Local has security risks; use Sandbox in production.',
+                'basic.sandbox.title': 'Sandbox Config',
+                'basic.label.allow_env': 'Allowed environment variables',
+                'basic.label.allow_read': 'Readable directories',
+                'basic.label.allow_write': 'Writable directories',
+                'basic.label.allow_run': 'Allowed commands',
+                'basic.label.allow_net': 'Allowed network addresses',
+                'basic.label.allow_ffi': 'Allowed lib (FFI)',
+                'basic.label.node_modules_dir': 'Node Modules directory',
+                'basic.label.timeout_seconds': 'Code timeout (seconds)',
+                'basic.label.memory_limit_mb': 'Memory limit (MB)',
+
+                'server.title': 'Server Configuration',
+                'server.host.label': 'Server host address',
+                'server.host.help': 'Format: http(s)://hostname:port , used by oauth auth',
+
+                'btn.save': 'Save Config',
+                'btn.reload': 'Reload',
+
+                'error.invalid_email': 'Please enter a valid email address',
+                'error.email_exists': 'This email already exists',
+                'error.admin_email_required': 'Please set at least one admin email',
+                'error.server_host_required': 'Please provide the server host address',
+                'error.invalid_admin_emails': 'Invalid admin emails: {list}',
+                'error.invalid_whitelist_emails': 'Invalid whitelist emails: {list}',
+                'error.save_failed': 'Save failed',
+                'error.save_failed_json': 'Save failed: check the service and JSON response',
+                'error.load_failed_empty': 'Load failed: empty response data',
+                'error.load_failed_json': 'Load failed: check the service and JSON response',
+                'success.saved': 'Saved successfully',
+                'success.saved_restart_required': 'Saved successfully. Restart the service to take effect',
+                'overlay.saving': 'Saving configuration...',
+                'error.missing_required': 'Please fill required fields: {list}',
+                'error.api_error': 'API returned error',
+                'error.save_failed_reason': 'Save failed: {reason}',
+                'page.manage_config': 'Manage and configure {title}',
+                'page.empty': 'Page content is empty',
+                'help.title': 'Help',
+                'help.quickstart.title': '🚀 Quick Start',
+                'help.quickstart.step1': 'Configure basic settings including API keys and system parameters',
+                'help.quickstart.step2': 'Add and configure AI models',
+                'help.quickstart.step3': 'Create a knowledge base and upload documents',
+                'help.quickstart.step4': 'Start using your AI assistant',
+                'help.features.title': '📚 Feature Overview',
+                'help.features.basic': 'Basic Config: system settings, API config, security settings',
+                'help.features.model': 'Model Management: add, edit, and delete AI models',
+                'help.features.kb': 'Knowledge Base: document upload, indexing, retrieval config',
+                'help.support.title': '🔧 Technical Support',
+                'help.support.contact': 'If you encounter issues, contact the support team',
+                'help.support.email': '📧 Email: {email}',
+                'help.support.phone': '📞 Phone: {phone}',
+                'export.success': 'Configuration file exported!',
+                'error.page_load_failed_reason': 'Page load failed: {reason}',
+
+                // Common
+                'common.cancel': 'Cancel',
+                'common.save': 'Save',
+                'common.delete': 'Delete',
+                'common.enabled': 'Enabled',
+                'common.disabled': 'Disabled',
+                'common.on': 'On',
+                'common.off': 'Off',
+                'common.saving': 'Saving...',
+                'common.not_configured': 'Not configured',
+                'common.unknown_error': 'Unknown error',
+
+                // Model Management
+                'model.list.title': 'Model List',
+                'model.provider.count': 'Providers: {count}',
+                'model.provider.model_count': 'Model count: {count}',
+                'model.actions.add': 'Add Model',
+                'model.provider.unnamed': 'Unnamed provider',
+                'model.provider.unknown': 'Unknown provider',
+                'model.unnamed': 'Unnamed model',
+
+                'model.field.id': 'ID',
+                'model.field.model': 'Model',
+                'model.field.api_key': 'API Key',
+                'model.field.base64_url': 'Base64URL',
+                'model.field.region': 'Region',
+                'model.field.backend': 'Backend',
+                'model.field.project': 'Project',
+                'model.field.location': 'Location',
+                'model.field.azure': 'By Azure',
+                'model.field.api_version': 'API Version',
+                'model.field.endpoint': 'Endpoint',
+                'model.field.thinking_type': 'Thinking Type',
+                'model.thinking_type.default': 'Default',
+                'model.thinking_type.enable': 'Enable',
+                'model.thinking_type.disable': 'Disable',
+                'model.thinking_type.auto': 'Auto',
+
+                'model.error.load_list_failed': 'Failed to load model list',
+                'model.error.render_page_failed': 'Failed to render model page',
+                'model.error.delete_missing_id': 'Delete model failed: missing model ID',
+                'model.confirm.delete': 'Delete this model? This cannot be undone',
+                'model.error.delete_invalid_json': 'Delete model failed: invalid JSON response',
+                'model.error.delete_failed': 'Delete model failed',
+                'model.error.open_modal_failed': 'Cannot open add-model form: component not rendered',
+                'model.error.provider_unrecognized': 'Unrecognized provider; click “Add Model” on a provider card.',
+                'model.error.missing_required_with_api': 'Please fill required: display name, model, api_key',
+                'model.error.missing_required': 'Please fill required: display name, model',
+                'model.error.create_read_failed': 'Create model failed: cannot read response',
+                'model.create.success': 'Created successfully',
+                'model.error.create_failed': 'Create model failed',
+
+                // Add Model Modal
+                'model.modal.add.title': 'Add Model',
+                'model.modal.display_name.label': 'Display Name',
+                'model.modal.display_name.placeholder': 'e.g., Doubao Seed 1.6',
+                'model.modal.model.label': 'Model',
+                'model.modal.model.placeholder': 'e.g., doubao-seed-1-6-250615',
+                'model.modal.api_key.label': 'API Key',
+                'model.modal.api_key.placeholder': 'Secret',
+                'model.modal.base_url.label': 'Base URL',
+                'model.modal.base_url.placeholder': 'Optional',
+                'model.modal.enable_base64_url.label': 'Enable Base64 URL',
+                'model.modal.enable_base64_url.help': 'Use base64-encoded URLs for images, files, audio, video',
+                'model.modal.ark_region.label': 'Region (Ark)',
+                'model.modal.ark_region.placeholder': 'Optional, e.g., cn-beijing',
+                'model.modal.azure.label': 'Use Azure',
+                'model.modal.azure.help': 'OpenAI settings: check to use via Azure',
+                'model.modal.openai_api_version.label': 'OpenAI API Version',
+                'model.modal.openai_api_version.placeholder': 'Optional, e.g., 2024-06-01',
+                'model.modal.gemini_backend.label': 'Backend',
+                'model.modal.gemini_backend.unspecified': 'Unspecified',
+                'model.modal.gemini_backend.gemini_api': 'Gemini API',
+                'model.modal.gemini_backend.vertex_ai': 'Vertex AI',
+                'model.modal.gemini_project.label': 'Project',
+                'model.modal.gemini_project.placeholder': 'Optional, e.g., my-project',
+                'model.modal.gemini_location.label': 'Location',
+                'model.modal.gemini_location.placeholder': 'Optional, e.g., us-central1',
+                'model.modal.thinking_type.label': 'Thinking Type',
+                'model.modal.thinking_type.enable': 'Enable',
+                'model.modal.thinking_type.disable': 'Disable',
+                'model.modal.thinking_type.auto': 'Auto',
+                
+                // Knowledge Config
+                'knowledge.error.load_failed_json': 'Load knowledge config failed: invalid JSON response',
+                'knowledge.error.load_failed_msg': 'Load knowledge config failed: {msg}',
+                'knowledge.error.load_failed_empty': 'Load knowledge config failed: empty response data',
+                'knowledge.error.load_failed': 'Load knowledge config failed',
+                'knowledge.error.load_failed_reason': 'Load knowledge config failed: {reason}',
+                'knowledge.log.local_preview_no_demo': 'Local preview: no demo data used',
+                'knowledge.section.embedding': 'Embedding Config',
+                'knowledge.connection': '{name} Connection',
+                'knowledge.section.rerank': 'Rerank Config',
+                'knowledge.section.ocr': 'OCR Config',
+                'knowledge.section.parser': 'Parser Config',
+                'knowledge.section.builtin_model': 'Knowledge Built-in Model Config',
+                'knowledge.label.choose_builtin_model': 'Choose Built-in Model',
+                'knowledge.placeholder.select_model': 'Please select a model',
+                'knowledge.loading.model_list': 'Loading model list...',
+                'knowledge.empty.model_list': 'No model list retrieved',
+                'knowledge.placeholder.model_fallback': 'Model #{id}',
+                'knowledge.tip.setup_model_first': 'Please configure models first',
+                'knowledge.error.model_list_load_failed': 'Failed to load model list',
+                'knowledge.error.render_failed': 'Render knowledge config failed',
+                'knowledge.error.save_failed': 'Failed to save config'
+            },
+        };
+
+        let currentLocale = 'zh-CN';
+        function t(key, vars) {
+            const dict = I18N[currentLocale] || I18N['zh-CN'];
+            let text = dict[key] || I18N['zh-CN'][key] || key;
+            if (vars && typeof vars === 'object') {
+                text = String(text).replace(/\{(\w+)\}/g, (_, k) => (vars[k] ?? `{${k}}`));
+            }
+            return text;
+        }
+        function setLocale(locale) {
+            const normalized = (locale === 'en-US' || locale === 'zh-CN') ? locale : (locale && String(locale).toLowerCase().startsWith('en') ? 'en-US' : 'zh-CN');
+            currentLocale = normalized;
+            try { localStorage.setItem('locale', normalized); } catch(_) {}
+            document.documentElement.lang = normalized;
+            applyTranslations();
+        }
+        function setNavLinkText(link, text) {
+            if (!link) return;
+            const icon = link.querySelector('.nav-icon');
+            const arrow = link.querySelector('.nav-arrow');
+            if (icon || arrow) {
+                const iconHTML = icon ? icon.outerHTML + ' ' : '';
+                const arrowHTML = arrow ? ' ' + arrow.outerHTML : '';
+                link.innerHTML = iconHTML + (text || '') + arrowHTML;
+            } else {
+                link.textContent = text || '';
+            }
+        }
+        function applyTranslations() {
+            // 左侧导航
+            setNavLinkText(document.querySelector('[data-page="config"]'), t('nav.config'));
+            const basicLink = document.querySelector('[data-page="basic-config"]');
+            if (basicLink) basicLink.innerHTML = '<span class="submenu-icon">🔧</span>' + t('nav.basic');
+            const modelLink = document.querySelector('[data-page="model-management"]');
+            if (modelLink) modelLink.innerHTML = '<span class="submenu-icon">🤖</span>' + t('nav.model');
+            const knowledgeLink = document.querySelector('[data-page="knowledge-config"]');
+            if (knowledgeLink) knowledgeLink.innerHTML = '<span class="submenu-icon">📚</span>' + t('nav.knowledge');
+
+            // 顶部标题（根据当前 hash）
+            const hash = window.location.hash.substring(1) || 'basic-config';
+            const map = {
+                'basic-config': { title: t('page.basic.title'), desc: t('page.basic.desc') },
+                'model-management': { title: t('page.model.title'), desc: t('page.model.desc') },
+                'knowledge-config': { title: t('page.knowledge.title'), desc: t('page.knowledge.desc') },
+            };
+            const meta = map[hash] || { title: t('page.default.title'), desc: t('page.default.desc') };
+            const pt = document.getElementById('pageTitle');
+            const pd = document.getElementById('pageDescription');
+            if (pt) pt.textContent = meta.title;
+            if (pd) pd.textContent = meta.desc;
+
+            // 侧边栏在线状态
+            const us = document.getElementById('userStatus');
+            if (us) us.textContent = t('status.online');
+
+            // 初始 loading 文案
+            const loadingSpan = document.querySelector('#pageContent .loading span');
+            if (loadingSpan) loadingSpan.textContent = t('loading');
+        }
+
+        // 页面导航功能
+        const navLinks = document.querySelectorAll('.nav-link');
+        const submenuLinks = document.querySelectorAll('.submenu-link');
+        const pageTitle = document.getElementById('pageTitle');
+        const pageDescription = document.getElementById('pageDescription');
+        const pageContent = document.getElementById('pageContent');
+
+        function handleApiCode(data) {
+            const code = Number(data?.code);
+            if (code === 700012006) {
+                window.location.href = '/sign?redirect=%2Fadmin';
+                return true;
+            }
+            if (code === 401) {
+                const msg = data?.msg || data?.message || t('error.generic');
+                alert(msg);
+                window.location.href = '/';
+                return true;
+            }
+            return false;
+        }
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化语言（优先使用本地存储，否则使用浏览器语言）
+            const storedLocale = (() => { try { return localStorage.getItem('locale'); } catch(_) { return null; } })();
+            setLocale(storedLocale || (navigator.language && navigator.language.toLowerCase().startsWith('en') ? 'en-US' : 'zh-CN'));
+            // 加载用户信息
+            loadUserInfo();
+            
+            // 初始化子菜单功能
+            initSubmenuToggle();
+            
+            // 默认展开配置管理子菜单
+            const configMenu = document.querySelector('[data-page="config"]');
+            if (configMenu) {
+                const navItem = configMenu.closest('.nav-item');
+                if (navItem) {
+                    navItem.classList.add('expanded');
+                }
+            }
+            
+            // 从URL hash获取当前页面，如果没有则显示默认页面
+            initPageFromURL();
+        });
+
+        // 从URL初始化页面
+        function initPageFromURL() {
+            const hash = window.location.hash.substring(1); // 去掉#号
+            if (hash) {
+                // 如果URL中有hash，加载对应页面
+                loadPageFromHash(hash);
+            } else {
+                // 如果没有hash，显示默认页面
+                showDefaultPage();
+            }
+        }
+
+        // 从hash加载页面
+        function loadPageFromHash(hash) {
+            const pageConfig = {
+                'basic-config': { title: t('page.basic.title'), description: t('page.basic.desc') },
+                'model-management': { title: t('page.model.title'), description: t('page.model.desc') },
+                'knowledge-config': { title: t('page.knowledge.title'), description: t('page.knowledge.desc') }
+            };
+
+            if (pageConfig[hash]) {
+                // 设置对应的导航项为活动状态
+                const targetLink = document.querySelector(`[data-page="${hash}"]`);
+                if (targetLink) {
+                    // 移除所有活动状态
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    submenuLinks.forEach(l => l.classList.remove('active'));
+                    
+                    // 添加当前活动状态
+                    targetLink.classList.add('active');
+                    
+                    // 如果是子菜单项，确保父菜单展开
+                    if (targetLink.classList.contains('submenu-link')) {
+                        const parentNavItem = targetLink.closest('.nav-item');
+                        if (parentNavItem) {
+                            parentNavItem.classList.add('expanded');
+                        }
+                    }
+                }
+                
+                // 加载页面内容
+                loadPageContent(hash);
+            } else {
+                // 如果hash不存在，显示默认页面
+                showDefaultPage();
+            }
+        }
+
+        // 加载用户信息
+        async function loadUserInfo() {
+            try {
+                // 从当前页面URL获取host
+                const currentHost = window.location.origin;
+                const apiUrl = `${currentHost}/api/passport/account/info/v2/`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({})
+                });
+                const result = await response.json();
+                
+                if (handleApiCode(result)) {
+                    return;
+                }
+                
+                if (result.code === 0 && result.data) {
+                    // 应用语言
+                    const apiLocale = result.data.locale;
+                    const storedLocale = (() => { try { return localStorage.getItem('locale'); } catch(_) { return null; } })();
+                    setLocale(apiLocale || storedLocale || (navigator.language && navigator.language.toLowerCase().startsWith('en') ? 'en-US' : 'zh-CN'));
+
+                    // 更新用户名
+                    const userNameElement = document.getElementById('userName');
+                    if (userNameElement && result.data.name) {
+                        userNameElement.textContent = result.data.name;
+                    }
+                    
+                    // 更新用户头像
+                    const userAvatarElement = document.getElementById('userAvatar');
+                    if (userAvatarElement && result.data.avatar_url) {
+                        // 创建img元素替换原有的emoji
+                        const img = document.createElement('img');
+                        img.src = result.data.avatar_url;
+                        img.alt = result.data.name || '用户头像';
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        img.style.borderRadius = '50%';
+                        img.style.objectFit = 'cover';
+                        
+                        // 添加错误处理，如果图片加载失败则显示默认图标
+                        img.onerror = function() {
+                            userAvatarElement.innerHTML = '👤';
+                        };
+                        
+                        userAvatarElement.innerHTML = '';
+                        userAvatarElement.appendChild(img);
+                    }
+                } else {
+                    console.warn('用户信息接口返回异常:', result);
+                    // 接口异常时也设置一次语言（兜底）
+                    const storedLocale = (() => { try { return localStorage.getItem('locale'); } catch(_) { return null; } })();
+                    setLocale(storedLocale || (navigator.language && navigator.language.toLowerCase().startsWith('en') ? 'en-US' : 'zh-CN'));
+                }
+            } catch (error) {
+                console.error('加载用户信息失败:', error);
+                // 保持默认显示
+            }
+        }
+
+        // 初始化子菜单切换功能
+        function initSubmenuToggle() {
+            const hasSubmenuItems = document.querySelectorAll('.has-submenu');
+            
+            hasSubmenuItems.forEach(item => {
+                const navLink = item.querySelector('.nav-link');
+                navLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    // 切换展开状态
+                    item.classList.toggle('expanded');
+                });
+            });
+        }
+
+        // 导航点击事件
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const parentItem = link.closest('.nav-item');
+                
+                // 如果不是子菜单项，处理页面跳转
+                if (!parentItem.classList.contains('has-submenu')) {
+                    e.preventDefault();
+                    
+                    // 移除所有活动状态
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    submenuLinks.forEach(l => l.classList.remove('active'));
+                    
+                    // 添加当前活动状态
+                    link.classList.add('active');
+                    
+                    const pageName = link.getAttribute('data-page');
+                    // 更新URL hash
+                    window.location.hash = pageName;
+                    loadPageContent(pageName);
+                }
+            });
+        });
+
+        // 子菜单点击事件
+        submenuLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // 移除所有活动状态
+                navLinks.forEach(l => l.classList.remove('active'));
+                submenuLinks.forEach(l => l.classList.remove('active'));
+                
+                // 添加当前活动状态
+                link.classList.add('active');
+                
+                const pageName = link.getAttribute('data-page');
+                // 更新URL hash
+                window.location.hash = pageName;
+                loadPageContent(pageName);
+            });
+        });
+
+        // 加载页面内容
+        function loadPageContent(pageName) {
+            const pageConfig = {
+                'basic-config': { title: t('page.basic.title'), description: t('page.basic.desc') },
+                'model-management': { title: t('page.model.title'), description: t('page.model.desc') },
+                'knowledge-config': { title: t('page.knowledge.title'), description: t('page.knowledge.desc') }
+            };
+            
+            const config = pageConfig[pageName] || { title: t('page.default.title'), description: t('page.default.desc') };
+            
+            pageTitle.textContent = config.title;
+            pageDescription.textContent = config.description;
+            
+            // 显示页面内容
+            showPageContent(pageName, config.title);
+        }
+
+        // 显示默认页面
+        function showDefaultPage() {
+            // 设置基础配置为选中状态
+            const basicConfigLink = document.querySelector('[data-page="basic-config"]');
+            if (basicConfigLink) {
+                // 移除所有活动状态
+                navLinks.forEach(l => l.classList.remove('active'));
+                submenuLinks.forEach(l => l.classList.remove('active'));
+                
+                // 添加基础配置的活动状态
+                basicConfigLink.classList.add('active');
+            }
+            
+            // 设置默认页面的URL hash
+            window.location.hash = 'basic-config';
+            loadPageContent('basic-config');
+        }
+
+        // 显示页面内容
+        function showPageContent(pageName, title) {
+            // 如果是基础配置页面，加载config.html的内容
+            if (pageName === 'basic-config') {
+                loadBasicConfigPage();
+                return;
+            }
+
+            // 如果是模型管理页面，加载模型列表
+            if (pageName === 'model-management') {
+                loadModelManagementPage();
+                return;
+            }
+
+            // 如果是知识库配置页面，加载知识库配置
+            if (pageName === 'knowledge-config') {
+                loadKnowledgeConfigPage();
+                return;
+            }
+            
+            pageContent.innerHTML = `
+                <div style="padding: 30px;">
+                    <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <h2 style="color: #2c3e50; margin-bottom: 20px;">${title}</h2>
+                        <p style="color: #7f8c8d; margin-bottom: 30px;">${t('page.contentArea', { title })}</p>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                            <div style="background: #f8f9fa; padding: 20px; border-radius: 6px; border-left: 4px solid #3498db;">
+                                <h4 style="color: #2c3e50; margin: 0 0 10px;">${t('feature.module1')}</h4>
+                                <p style="color: #7f8c8d; margin: 0; font-size: 14px;">${t('feature.desc')}</p>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 20px; border-radius: 6px; border-left: 4px solid #e74c3c;">
+                                <h4 style="color: #2c3e50; margin: 0 0 10px;">${t('feature.module2')}</h4>
+                                <p style="color: #7f8c8d; margin: 0; font-size: 14px;">${t('feature.desc')}</p>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 20px; border-radius: 6px; border-left: 4px solid #f39c12;">
+                                <h4 style="color: #2c3e50; margin: 0 0 10px;">${t('feature.module3')}</h4>
+                                <p style="color: #7f8c8d; margin: 0; font-size: 14px;">${t('feature.desc')}</p>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 30px; padding: 20px; background: #ecf0f1; border-radius: 6px;">
+                            <h4 style="color: #2c3e50; margin: 0 0 15px;">${t('quick.title')}</h4>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button style="background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">${t('quick.new')}</button>
+                                <button style="background: #2ecc71; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">${t('quick.import')}</button>
+                                <button style="background: #f39c12; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">${t('quick.export')}</button>
+                                <button style="background: #95a5a6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">${t('quick.settings')}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 加载基础配置页面（已内联到 index.html）
+        function loadBasicConfigPage() {
+            ensureConfigStylesInjected();
+            pageContent.innerHTML = getBasicConfigMarkup();
+            // 绑定弹窗函数到全局浮层
+            overrideConfigOverlay();
+            // 初始化交互与数据
+            setupConfigEventListeners();
+            initConfigEmailTags();
+            setTimeout(() => {
+                if (typeof window.loadConfig === 'function') {
+                    window.loadConfig();
+                }
+            }, 0);
+        }
+
+        // 将配置页的弹窗绑定到 index.html 的全局浮层（幂等且无递归）
+        function overrideConfigOverlay() {
+            if (window.__overlayBound) return;
+            const baseShow = (typeof window.showOverlay === 'function') ? window.showOverlay.bind(window) : function(message, type){
+                // 兜底：如果原函数不存在，直接调用本地实现
+                const overlay = document.getElementById('overlay');
+                const overlayContent = document.getElementById('overlayContent');
+                const overlayMessage = document.getElementById('overlayMessage');
+                if (!overlay || !overlayContent || !overlayMessage) { alert(String(message || '未知错误')); return; }
+                overlayMessage.textContent = String(message || '');
+                overlayContent.className = `overlay-content ${type === 'success' ? 'success' : 'error'}`;
+                overlay.classList.add('show');
+                overlay.onclick = function(e){ if (e.target === overlay) hideOverlay(); };
+                setTimeout(() => hideOverlay(), 3000);
+            };
+            const baseHide = (typeof window.hideOverlay === 'function') ? window.hideOverlay.bind(window) : function(){
+                const overlay = document.getElementById('overlay');
+                if (overlay) overlay.classList.remove('show');
+            };
+            window.showOverlay = function(message, type) { baseShow(message, type); };
+            window.hideOverlay = function() { baseHide(); };
+            window.showError = function(message) { baseShow(message || t('error.generic'), 'error'); };
+            window.showSuccess = function(message) { baseShow(message || t('success.generic'), 'success'); };
+            window.__overlayBound = true;
+        }
+
+        // 注入基础配置页 CSS（移除 overlay 相关样式）
+        const CONFIG_PAGE_CSS = `
+.page-content { max-width: 1000px; margin: 0 auto; padding: 30px; }
+.page-header { background: white; border-radius: 12px; padding: 30px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); border-left: 4px solid #3498db; }
+.page-title { font-size: 28px; font-weight: 600; color: #2c3e50; margin-bottom: 8px; }
+.page-subtitle { font-size: 16px; color: #6c757d; font-weight: 400; }
+.config-section { background: white; border-radius: 12px; padding: 30px; margin-bottom: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); border: 1px solid #e1e8ed; transition: all 0.3s ease; }
+.config-section:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+.section-title { font-size: 20px; font-weight: 600; color: #2c3e50; margin-bottom: 24px; display: flex; align-items: center; padding-bottom: 12px; border-bottom: 2px solid #f1f3f4; }
+.section-icon { margin-right: 12px; font-size: 20px; color: #3498db; }
+.form-group { margin-bottom: 24px; position: relative; }
+.form-label { display: block; font-weight: 500; color: #374151; margin-bottom: 8px; font-size: 14px; }
+.form-input { width: 100%; padding: 12px 16px; border: 2px solid #e1e8ed; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; background: white; box-sizing: border-box; font-family: inherit; }
+.form-input:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
+.form-input:hover:not(:focus) { border-color: #bdc3c7; }
+.form-textarea { min-height: 100px; resize: vertical; font-family: inherit; }
+.form-select { appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 8 4 4 4-4'/%3e%3c/svg%3e"); background-position: right 12px center; background-repeat: no-repeat; background-size: 16px; padding-right: 40px; cursor: pointer; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.checkbox-group { display: flex; align-items: center; margin-bottom: 16px; padding: 12px 16px; background: #f8f9fa; border-radius: 8px; border: 2px solid #e1e8ed; transition: all 0.3s ease; }
+.checkbox-group:hover { background: #f1f3f4; border-color: #bdc3c7; }
+.checkbox-input { margin-right: 12px; width: 18px; height: 18px; accent-color: #3498db; cursor: pointer; }
+.checkbox-group label { font-weight: 500; color: #374151; cursor: pointer; font-size: 14px; }
+.radio-group { display: flex; gap: 16px; margin-top: 8px; }
+.radio-item { display: flex; align-items: center; padding: 10px 16px; background: white; border-radius: 8px; border: 2px solid #e1e8ed; transition: all 0.3s ease; cursor: pointer; }
+.radio-item:hover { background: #f8f9fa; border-color: #3498db; }
+.radio-item:has(input:checked) { background: #e8f4fd; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
+.radio-input { margin-right: 8px; width: 18px; height: 18px; accent-color: #3498db; cursor: pointer; }
+.radio-item label { font-weight: 500; color: #374151; cursor: pointer; font-size: 14px; }
+.btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; margin-right: 12px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-family: inherit; }
+.btn-primary { background: #3498db; color: white; box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3); }
+.btn-primary:hover { background: #2980b9; box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4); }
+.btn-primary:active { transform: translateY(1px); box-shadow: 0 1px 4px rgba(52, 152, 219, 0.3); }
+.btn-secondary { background: #f8f9fa; color: #6c757d; border: 2px solid #e1e8ed; }
+.btn-secondary:hover { background: #e9ecef; border-color: #bdc3c7; color: #495057; }
+.registration-config-group { background: #f8f9fa; border-radius: 12px; padding: 20px; border: 2px solid #e1e8ed; margin-bottom: 20px; position: relative; }
+.registration-config-group::before { content: '👥'; position: absolute; top: -12px; left: 20px; background: white; padding: 0 8px; font-size: 16px; color: #3498db; }
+.registration-config-group .checkbox-group { margin-bottom: 16px; background: white; border: 2px solid #3498db; box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1); }
+.plugin-config-group::before { content: '🧩'; position: absolute; top: -12px; left: 20px; background: white; padding: 0 8px; font-size: 16px; color: #3498db; }
+.whitelist-email-config { margin-left: 30px; padding-left: 20px; border-left: 3px solid #3498db; background: white; border-radius: 8px; padding: 16px 20px; margin-bottom: 0; transition: all 0.3s ease; }
+.whitelist-email-config.show { animation: slideDown 0.3s ease-out; }
+.email-tags-container { border: 2px solid #e1e8ed; border-radius: 8px; padding: 8px; background: white; min-height: 48px; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px; cursor: text; transition: border-color 0.3s ease; }
+.email-tags-container:focus-within { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
+.email-tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.email-tag { background: #3498db; color: white; padding: 4px 8px; border-radius: 16px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; max-width: 200px; overflow: hidden; }
+.email-tag-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.email-tag-remove { background: none; border: none; color: white; cursor: pointer; padding: 0; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; transition: background-color 0.2s ease; }
+.email-tag-remove:hover { background: rgba(255, 255, 255, 0.2); }
+.email-input { border: none !important; box-shadow: none !important; padding: 4px 0 !important; margin: 0 !important; flex: 1; min-width: 200px; background: transparent !important; }
+.email-input:focus { outline: none !important; border: none !important; box-shadow: none !important; }
+.help-text { font-size: 12px; color: #9ca3af; margin-top: 6px; font-style: italic; }
+.sandbox-config { display: none; margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px solid #e1e8ed; position: relative; }
+.sandbox-config::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #3498db; border-radius: 8px 8px 0 0; }
+.sandbox-config.show { display: block; animation: slideDown 0.3s ease-out; }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.sandbox-config h4 { margin-bottom: 16px; color: #2c3e50; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.sandbox-config h4::before { content: '🔧'; font-size: 16px; }
+.loading { text-align: center; padding: 40px; color: #6c757d; background: white; border-radius: 12px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+.loading::before { content: '⚙️'; font-size: 32px; display: block; margin-bottom: 12px; animation: spin 2s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.error { background: #fee2e2; color: #dc2626; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #dc2626; font-weight: 500; }
+.success { background: #dcfce7; color: #16a34a; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #16a34a; font-weight: 500; }
+.action-buttons { margin-top: 30px; padding-top: 24px; border-top: 2px solid #f1f3f4; text-align: center; }
+`;
+
+        function ensureConfigStylesInjected() {
+            const existingStyle = document.querySelector('style[data-config-page="true"]');
+            if (existingStyle) return;
+            const style = document.createElement('style');
+            style.setAttribute('data-config-page', 'true');
+            style.textContent = CONFIG_PAGE_CSS;
+            document.head.appendChild(style);
+        }
+
+        // 基础配置页静态 DOM
+        function getBasicConfigMarkup() {
+            return `
+<div class="page-content">
+
+  <div id="loadingMessage" class="loading" style="display:none;">${t('basic.loading')}</div>
+  <div id="errorMessage" class="error" style="display:none;"></div>
+  <div id="successMessage" class="success" style="display:none;"></div>
+
+  <form id="configForm" style="display:none;">
+    <div class="config-section">
+      <div class="form-group">
+        <label class="form-label">${t('basic.label.admin_emails')}</label>
+        <div class="email-tags-container" id="emailTagsContainer">
+          <div class="email-tags" id="emailTags"></div>
+          <input type="text" id="adminEmails" class="form-input email-input" placeholder="${t('basic.placeholder.email_input')}" />
+        </div>
+      </div>
+
+      <div class="registration-config-group plugin-config-group">
+        <div class="form-group">
+          <label class="form-label">Coze API Token</label>
+          <input type="password" id="cozeApiToken" class="form-input" placeholder="${t('basic.placeholder.coze_api_token')}">
+          <div style="margin-top:8px;font-size:12px;">
+            <a href="https://www.coze.cn/open/oauth/pats" target="_blank" rel="noopener noreferrer" style="color:#2980b9;text-decoration:none;">${t('basic.help.coze_api_token_apply')}</a>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="cozeSaasPluginEnabled" class="checkbox-input" />
+            <label for="cozeSaasPluginEnabled">${t('basic.label.enable_coze_saas')}</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Coze SaaS API Base URL</label>
+          <input type="text" id="cozeSaasApiBaseUrl" class="form-input" placeholder="https://api.coze.cn" />
+        </div>
+      </div>
+
+      <div class="registration-config-group">
+        <div class="checkbox-group">
+          <input type="checkbox" id="disableUserRegistration" class="checkbox-input" />
+          <label for="disableUserRegistration">${t('basic.label.disable_user_registration')}</label>
+        </div>
+
+        <div id="whitelistEmailGroup" class="form-group whitelist-email-config" style="display:none;">
+          <label class="form-label">${t('basic.label.whitelist_emails')}</label>
+          <div class="email-tags-container" id="whitelistEmailTagsContainer">
+            <div class="email-tags" id="whitelistEmailTags"></div>
+            <input type="text" id="allowRegistrationEmail" class="form-input email-input" placeholder="${t('basic.placeholder.email_input')}" />
+          </div>
+          <div class="help-text">${t('basic.help.whitelist')}</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">${t('basic.label.python_env')}</label>
+        <div class="radio-group">
+          <div class="radio-item"><input type="radio" id="codeRunnerLocal" name="codeRunnerType" value="0" class="radio-input" /><label for="codeRunnerLocal">Local</label></div>
+          <div class="radio-item"><input type="radio" id="codeRunnerSandbox" name="codeRunnerType" value="1" class="radio-input" /><label for="codeRunnerSandbox">Sandbox</label></div>
+        </div>
+        <div class="help-text">${t('basic.help.local_risk')}</div>
+      </div>
+
+      <div id="sandboxConfig" class="sandbox-config">
+        <h4 style="margin-bottom: 15px; color: #2c3e50;">${t('basic.sandbox.title')}</h4>
+        <div class="form-group">
+          <label class="form-label">${t('basic.label.allow_env')}</label>
+          <input type="text" id="allowEnv" class="form-input" placeholder="PATH,USERNAME">
+        </div>
+        <div class="form-group">
+          <label class="form-label">${t('basic.label.allow_read')}</label>
+          <input type="text" id="allowRead" class="form-input" placeholder="/tmp,./data">
+        </div>
+        <div class="form-group">
+          <label class="form-label">${t('basic.label.allow_write')}</label>
+          <input type="text" id="allowWrite" class="form-input" placeholder="/tmp,./data">
+        </div>
+        <div class="form-group">
+          <label class="form-label">${t('basic.label.allow_run')}</label>
+          <input type="text" id="allowRun" class="form-input" placeholder="python,git">
+        </div>
+        <div class="form-group">
+          <label class="form-label">${t('basic.label.allow_net')}</label>
+          <input type="text" id="allowNet" class="form-input" placeholder="cdn.jsdelivr.net">
+        </div>
+        <div class="form-group">
+          <label class="form-label">${t('basic.label.allow_ffi')}</label>
+          <input type="text" id="allowFfi" class="form-input" placeholder="/usr/lib/libm.so">
+        </div>
+        <div class="form-group">
+          <label class="form-label">${t('basic.label.node_modules_dir')}</label>
+          <input type="text" id="nodeModulesDir" class="form-input" placeholder="/tmp/path/node_modules">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">${t('basic.label.timeout_seconds')}</label>
+            <input type="number" id="timeoutSeconds" class="form-input" placeholder="60" min="1" max="3600">
+          </div>
+          <div class="form-group">
+            <label class="form-label">${t('basic.label.memory_limit_mb')}</label>
+            <input type="number" id="memoryLimitMb" class="form-input" placeholder="100" min="1" max="10240">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <h3 class="section-title"><span class="section-icon">🌐</span>${t('server.title')}</h3>
+      <div class="form-group">
+        <label class="form-label">${t('server.host.label')}</label>
+        <input type="text" id="serverHost" class="form-input" placeholder="localhost:8888" />
+        <div class="help-text">${t('server.host.help')}</div>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button type="button" class="btn btn-primary" onclick="saveConfig()">💾 ${t('btn.save')}</button>
+      <button type="button" class="btn btn-secondary" onclick="loadConfig()">🔄 ${t('btn.reload')}</button>
+    </div>
+  </form>
+</div>`;
+        }
+
+        // -------------------- 基础配置页脚本（避免与全局命名冲突） --------------------
+        let currentConfig = {};
+        let emailTags = [];
+        let whitelistEmailTags = [];
+
+        function getConfigTagsArray(containerId) {
+            if (containerId === 'emailTags') return emailTags;
+            if (containerId === 'whitelistEmailTags') return whitelistEmailTags;
+            return [];
+        }
+
+        function initConfigEmailTags() {
+            initConfigEmailTagsForInput('adminEmails', 'emailTags', 'emailTags');
+            initConfigEmailTagsForInput('allowRegistrationEmail', 'whitelistEmailTags', 'whitelistEmailTags');
+        }
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function initConfigEmailTagsForInput(inputId, containerId, type) {
+            const inputEl = document.getElementById(inputId);
+            const container = document.getElementById(containerId);
+            if (!inputEl || !container) return;
+
+            const handleAdd = () => {
+                const value = inputEl.value.trim();
+                if (value) {
+                    addConfigEmailTagForInput(type, value);
+                    inputEl.value = '';
+                }
+            };
+
+            inputEl.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    handleAdd();
+                } else if (e.key === 'Backspace' && !inputEl.value) {
+                    const tags = getConfigTagsArray(containerId);
+                    tags.pop();
+                    renderConfigEmailTagsForInput(containerId, tags);
+                }
+            });
+
+            inputEl.addEventListener('blur', handleAdd);
+        }
+
+        function addConfigEmailTagForInput(type, value) {
+            const containerId = type === 'emailTags' ? 'emailTags' : 'whitelistEmailTags';
+            const tags = getConfigTagsArray(containerId);
+
+            if (!isValidEmail(value)) {
+                showError('请输入有效的邮箱地址');
+                return;
+            }
+
+            if (tags.includes(value)) {
+                showError('该邮箱已存在');
+                return;
+            }
+
+            tags.push(value);
+            renderConfigEmailTagsForInput(containerId, tags);
+        }
+
+        function removeConfigEmailTagForInput(type, index) {
+            const containerId = type === 'emailTags' ? 'emailTags' : 'whitelistEmailTags';
+            const tags = getConfigTagsArray(containerId);
+            tags.splice(index, 1);
+            renderConfigEmailTagsForInput(containerId, tags);
+        }
+
+        function renderConfigEmailTagsForInput(containerId, tags) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            tags.forEach((tag, index) => {
+                const tagElement = document.createElement('span');
+                tagElement.className = 'email-tag';
+                tagElement.innerHTML = `
+                    <span class="email-tag-text" title="${tag}">${tag}</span>
+                    <button class="email-tag-remove" onclick="removeConfigEmailTagForInput('${containerId === 'emailTags' ? 'emailTags' : 'whitelistEmailTags'}', ${index})">×</button>
+                `;
+                container.appendChild(tagElement);
+            });
+        }
+
+        function setEmailTags(emails) {
+            const inputEmails = Array.isArray(emails) ? emails : (emails || '').split(/[,\s]+/).filter(Boolean);
+            const nowEmails = emailTags || [];
+            const allEmails = Array.from(new Set([...(nowEmails || []), ...(inputEmails || [])]));
+            emailTags = allEmails;
+            renderConfigEmailTagsForInput('emailTags', emailTags);
+        }
+
+        function getEmailTags() {
+            return (emailTags || []).join(',');
+        }
+
+        function setWhitelistEmailTags(emails) {
+            const inputEmails = Array.isArray(emails) ? emails : (emails || '').split(/[,\s]+/).filter(Boolean);
+            const nowEmails = whitelistEmailTags || [];
+            const allEmails = Array.from(new Set([...(nowEmails || []), ...(inputEmails || [])]));
+            whitelistEmailTags = allEmails;
+            renderConfigEmailTagsForInput('whitelistEmailTags', whitelistEmailTags);
+        }
+
+        function getWhitelistEmailTags() {
+            return (whitelistEmailTags || []).join(',');
+        }
+
+        function setupConfigEventListeners() {
+            const disableEl = document.getElementById('disableUserRegistration');
+            const whitelistGroup = document.getElementById('whitelistEmailGroup');
+            if (disableEl && whitelistGroup) {
+                disableEl.addEventListener('change', function () {
+                    toggleConfigWhitelistEmailConfig(disableEl.checked);
+                });
+            }
+
+            const localEl = document.getElementById('codeRunnerLocal');
+            const sandboxEl = document.getElementById('codeRunnerSandbox');
+            if (localEl && sandboxEl) {
+                const updateSandbox = () => toggleConfigSandboxConfig(sandboxEl.checked);
+                localEl.addEventListener('change', updateSandbox);
+                sandboxEl.addEventListener('change', updateSandbox);
+            }
+        }
+
+        function toggleConfigWhitelistEmailConfig(show) {
+            const el = document.getElementById('whitelistEmailGroup');
+            if (!el) return;
+            el.style.display = show ? 'block' : 'none';
+            if (show) el.classList.add('show'); else el.classList.remove('show');
+        }
+
+        function toggleConfigSandboxConfig(show) {
+            const el = document.getElementById('sandboxConfig');
+            if (!el) return;
+            el.style.display = show ? 'block' : 'none';
+            if (show) el.classList.add('show'); else el.classList.remove('show');
+        }
+
+        function loadConfig() {
+            showConfigLoading(true);
+            hideMessages();
+            fetch('/api/admin/config/basic/get')
+                .then(response => response.json())
+                .then(data => {
+                    if (handleApiCode(data)) {
+                        showConfigLoading(false);
+                        return;
+                    }
+                    if (!data || !data.configuration) {
+                        showError(t('error.load_failed_empty'));
+                        // 在无后端或接口异常时也展示表单，便于手动配置
+                        populateForm({});
+                        showConfigForm(true);
+                        showConfigLoading(false);
+                        return;
+                    }
+                    currentConfig = data.configuration || {};
+                    populateForm(currentConfig);
+                    showConfigForm(true);
+                    showConfigLoading(false);
+                })
+                .catch(err => {
+                    console.error('Failed to load configuration:', err);
+                    showError(t('error.load_failed_json'));
+                    // 无后端时展示空表单以便继续操作
+                    populateForm({});
+                    showConfigForm(true);
+                    showConfigLoading(false);
+                });
+        }
+
+        function populateForm(cfg) {
+            document.getElementById('serverHost').value = cfg.server_host || '';
+
+            // 管理员邮箱
+            setEmailTags(cfg.admin_emails || '');
+
+            // 插件配置：Coze API Token + SaaS 相关
+            const pluginCfg = cfg.plugin_configuration || {};
+            const cozeEl = document.getElementById('cozeApiToken');
+            if (cozeEl) cozeEl.value = pluginCfg.coze_api_token || cfg.coze_api_token || '';
+            const saasEnabledEl = document.getElementById('cozeSaasPluginEnabled');
+            if (saasEnabledEl) saasEnabledEl.checked = (pluginCfg.coze_saas_plugin_enabled === true || pluginCfg.coze_saas_plugin_enabled === 'true');
+            const saasBaseUrlEl = document.getElementById('cozeSaasApiBaseUrl');
+            if (saasBaseUrlEl) saasBaseUrlEl.value = pluginCfg.coze_saas_api_base_url || 'https://api.coze.cn';
+
+            // 禁止用户注册与白名单
+            const disableReg = cfg.disable_user_registration === true || cfg.disable_user_registration === 'true';
+            const disableEl = document.getElementById('disableUserRegistration');
+            if (disableEl) disableEl.checked = disableReg;
+            toggleConfigWhitelistEmailConfig(disableReg);
+            setWhitelistEmailTags(cfg.allow_registration_email || '');
+
+            // 代码运行环境
+            const crt = Number(cfg.code_runner_type || 0);
+            const localEl = document.getElementById('codeRunnerLocal');
+            const sandboxEl = document.getElementById('codeRunnerSandbox');
+            if (localEl && sandboxEl) {
+                localEl.checked = crt !== 1;
+                sandboxEl.checked = crt === 1;
+            }
+            toggleConfigSandboxConfig(crt === 1);
+
+            // Sandbox 配置
+            const s = cfg.sandbox_config || {};
+            if (document.getElementById('allowEnv')) document.getElementById('allowEnv').value = s.allow_env || '';
+            if (document.getElementById('allowRead')) document.getElementById('allowRead').value = s.allow_read || '';
+            if (document.getElementById('allowWrite')) document.getElementById('allowWrite').value = s.allow_write || '';
+            if (document.getElementById('allowRun')) document.getElementById('allowRun').value = s.allow_run || '';
+            if (document.getElementById('allowNet')) document.getElementById('allowNet').value = s.allow_net || 'cdn.jsdelivr.net';
+            if (document.getElementById('allowFfi')) document.getElementById('allowFfi').value = s.allow_ffi || '';
+            if (document.getElementById('nodeModulesDir')) document.getElementById('nodeModulesDir').value = s.node_modules_dir || '';
+            if (document.getElementById('timeoutSeconds')) document.getElementById('timeoutSeconds').value = s.timeout_seconds || '';
+            if (document.getElementById('memoryLimitMb')) document.getElementById('memoryLimitMb').value = s.memory_limit_mb || '';
+        }
+
+        function collectFormData() {
+            const serverHost = document.getElementById('serverHost').value.trim();
+            const adminEmails = getEmailTags();
+            const allowedEmails = getWhitelistEmailTags();
+            const disableReg = document.getElementById('disableUserRegistration').checked;
+            const codeRunnerType = document.getElementById('codeRunnerSandbox').checked ? 1 : 0;
+            const cozeApiToken = (document.getElementById('cozeApiToken')?.value || '').trim();
+            const cozeSaasPluginEnabled = !!(document.getElementById('cozeSaasPluginEnabled')?.checked);
+            const cozeSaasApiBaseUrlRaw = (document.getElementById('cozeSaasApiBaseUrl')?.value || '');
+            const cozeSaasApiBaseUrl = (cozeSaasApiBaseUrlRaw ? cozeSaasApiBaseUrlRaw : 'https://api.coze.cn').replace(/`/g, '').trim();
+
+            const sAllowEnv = (document.getElementById('allowEnv')?.value || '').trim();
+            const sAllowRead = (document.getElementById('allowRead')?.value || '').trim();
+            const sAllowWrite = (document.getElementById('allowWrite')?.value || '').trim();
+            const sAllowRun = (document.getElementById('allowRun')?.value || '').trim();
+            const sAllowNet = (document.getElementById('allowNet')?.value || '').trim();
+            const sAllowFfi = (document.getElementById('allowFfi')?.value || '').trim();
+            const sNodeModulesDir = (document.getElementById('nodeModulesDir')?.value || '').trim();
+            const sTimeoutSeconds = document.getElementById('timeoutSeconds')?.value;
+            const sMemoryLimitMb = document.getElementById('memoryLimitMb')?.value;
+
+            const configuration = {
+                admin_emails: adminEmails,
+                disable_user_registration: disableReg,
+                allow_registration_email: allowedEmails,
+                code_runner_type: codeRunnerType,
+                server_host: serverHost,
+                plugin_configuration: {
+                    coze_saas_plugin_enabled: cozeSaasPluginEnabled,
+                    coze_api_token: cozeApiToken,
+                    coze_saas_api_base_url: cozeSaasApiBaseUrl
+                }
+            };
+
+            if (codeRunnerType === 1) {
+                configuration.sandbox_config = {
+                    allow_env: sAllowEnv,
+                    allow_read: sAllowRead,
+                    allow_write: sAllowWrite,
+                    allow_run: sAllowRun,
+                    allow_net: sAllowNet || 'cdn.jsdelivr.net',
+                    allow_ffi: sAllowFfi,
+                    node_modules_dir: sNodeModulesDir,
+                    timeout_seconds: sTimeoutSeconds ? parseFloat(sTimeoutSeconds) : undefined,
+                    memory_limit_mb: sMemoryLimitMb ? parseInt(sMemoryLimitMb, 10) : undefined
+                };
+            }
+
+            return { configuration };
+        }
+
+        function saveConfig() {
+            const payload = collectFormData();
+            if (!payload.configuration.admin_emails) {
+                showError(t('error.admin_email_required'));
+                return;
+            }
+            if (!payload.configuration.server_host) {
+                showError(t('error.server_host_required'));
+                return;
+            }
+
+            // 验证当前标签中的邮箱格式（最终兜底检查）
+            const invalidAdmin = (emailTags || []).filter(e => e && !isValidEmail(e));
+            const invalidWhitelist = (whitelistEmailTags || []).filter(e => e && !isValidEmail(e));
+            if (invalidAdmin.length > 0) {
+                showError(t('error.invalid_admin_emails', { list: invalidAdmin.join(', ') }));
+                return;
+            }
+            if (invalidWhitelist.length > 0) {
+                showError(t('error.invalid_whitelist_emails', { list: invalidWhitelist.join(', ') }));
+                return;
+            }
+
+            showConfigLoading(true);
+            hideMessages();
+            fetch('/api/admin/config/basic/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (handleApiCode(data)) {
+                    showConfigLoading(false);
+                    return;
+                }
+                if (data && Number(data.code) === 0) {
+                    showSuccess(t('success.saved'));
+                } else {
+                    const msg = (data && (data.msg || data.message)) ? (data.msg || data.message) : t('error.save_failed');
+                    showError(msg);
+                }
+                showConfigLoading(false);
+            })
+            .catch(err => {
+                console.error(t('knowledge.error.save_failed') + ':', err);
+                showError(t('error.save_failed_json'));
+                showConfigLoading(false);
+            });
+        }
+
+        function showConfigLoading(show) {
+            const el = document.getElementById('loadingMessage');
+            if (el) el.style.display = show ? 'block' : 'none';
+        }
+
+        function showConfigForm(show) {
+            const el = document.getElementById('configForm');
+            if (el) el.style.display = show ? 'block' : 'none';
+        }
+
+        function hideMessages() {
+            const errEl = document.getElementById('errorMessage');
+            const sucEl = document.getElementById('successMessage');
+            if (errEl) errEl.style.display = 'none';
+            if (sucEl) sucEl.style.display = 'none';
+        }
+
+        // 显示工作台内容
+        function showWorkspaceContent() {
+            const now = new Date();
+            const localeFmt = (currentLocale === 'en-US') ? 'en-US' : 'zh-CN';
+            const today = now.toLocaleDateString(localeFmt, {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            });
+            
+            const hour = now.getHours();
+            let greetingKey = 'workspace.greeting.evening';
+            if (hour < 6) {
+                greetingKey = 'workspace.greeting.late';
+            } else if (hour < 12) {
+                greetingKey = 'workspace.greeting.morning';
+            } else if (hour < 14) {
+                greetingKey = 'workspace.greeting.noon';
+            } else if (hour < 18) {
+                greetingKey = 'workspace.greeting.afternoon';
+            } else {
+                greetingKey = 'workspace.greeting.evening';
+            }
+            const greeting = t(greetingKey);
+            
+            pageContent.innerHTML = `
+                <div style="padding: 30px;">
+                    <div style="text-align: center; margin-bottom: 40px;">
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; border-radius: 15px; box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);">
+                            <h1 style="margin: 0 0 15px; font-size: 2.5em; font-weight: 300;">${t('workspace.hero.title')}</h1>
+                            <p style="margin: 0 0 20px; font-size: 1.2em; opacity: 0.9;">${greeting}</p>
+                            <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; display: inline-block;">
+                                <p style="margin: 0; font-size: 1.1em; font-weight: 500;">📅 ${today}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
+                        <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-left: 5px solid #3498db;">
+                            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                <div style="background: #3498db; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 18px;">🔧</div>
+                                <h3 style="margin: 0; color: #2c3e50;">${t('workspace.card.basic.title')}</h3>
+                            </div>
+                            <p style="color: #7f8c8d; margin-bottom: 15px; line-height: 1.6;">${t('workspace.card.basic.desc')}</p>
+                            <button onclick="loadPageContent('basic-config')" style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s;">${t('workspace.card.basic.cta')}</button>
+                        </div>
+                        
+                        <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-left: 5px solid #2ecc71;">
+                            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                <div style="background: #2ecc71; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 18px;">🤖</div>
+                                <h3 style="margin: 0; color: #2c3e50;">${t('workspace.card.model.title')}</h3>
+                            </div>
+                            <p style="color: #7f8c8d; margin-bottom: 15px; line-height: 1.6;">${t('workspace.card.model.desc')}</p>
+                            <button onclick="loadPageContent('model-management')" style="background: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s;">${t('workspace.card.model.cta')}</button>
+                        </div>
+                        
+                        <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-left: 5px solid #f39c12;">
+                            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                <div style="background: #f39c12; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 18px;">📚</div>
+                                <h3 style="margin: 0; color: #2c3e50;">${t('workspace.card.knowledge.title')}</h3>
+                            </div>
+                            <p style="color: #7f8c8d; margin-bottom: 15px; line-height: 1.6;">${t('workspace.card.knowledge.desc')}</p>
+                            <button onclick="loadPageContent('knowledge-config')" style="background: #f39c12; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s;">${t('workspace.card.knowledge.cta')}</button>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 30px; text-align: center; color: #95a5a6; font-size: 14px;">
+                        <p>🚀 ${t('workspace.footer.cta')}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 模型管理页面：加载与渲染
+        async function loadModelManagementPage() {
+            try {
+                showLoading();
+                const currentHost = window.location.origin;
+                const apiUrl = `${currentHost}/api/admin/config/model/list`;
+                const response = await fetch(apiUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status} ${response.statusText}`);
+                }
+                const data = await response.json();
+                if (handleApiCode(data)) {
+                    return;
+                }
+                renderModelManagement(data);
+            } catch (error) {
+                console.error(t('model.error.load_list_failed'), error);
+                showError(t('model.error.load_list_failed') + ': ' + error.message);
+            }
+        }
+
+        function sanitizeUrl(url) {
+            if (!url) return '';
+            return String(url).replace(/`/g, '').trim();
+        }
+
+        function maskApiKey(key) {
+            if (!key) return t('common.not_configured');
+            const s = String(key);
+            if (s.length <= 10) return '***';
+            return s.slice(0, 6) + '***' + s.slice(-4);
+        }
+
+        function getThinkingTypeText(thinkingTypeValue) {
+            const thinkingType = Number(thinkingTypeValue);
+            switch (thinkingType) {
+                case 0: return t('model.thinking_type.default');
+                case 1: return t('model.thinking_type.enable');
+                case 2: return t('model.thinking_type.disable');
+                case 3: return t('model.thinking_type.auto');
+                default: return '-';
+            }
+        }
+
+        function renderModelManagement(payload) {
+            try {
+                const providers = Array.isArray(payload?.provider_model_list) ? payload.provider_model_list : [];
+                const html = `
+                    <div style="padding: 30px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                            <div>
+                                <h2 style="color:#2c3e50;margin:0 0 8px;">${t('model.list.title')}</h2>
+                            </div>
+                            <div style="font-size:12px;color:#95a5a6;">${t('model.provider.count', { count: providers.length })}</div>
+                        </div>
+
+                        <!-- 添加模型弹窗 -->
+                        <div id="addModelModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.35);display:none;align-items:center;justify-content:center;z-index:9999;">
+                            <div style="background:#fff;width:480px;max-width:90vw;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.2);overflow:hidden;">
+                                <div style="padding:16px 20px;border-bottom:1px solid #f1f3f4;display:flex;justify-content:space-between;align-items:center;">
+                                    <div style="font-weight:600;color:#2c3e50;">${t('model.modal.add.title')}</div>
+                                    <button onclick="closeAddModelModal()" style="background:transparent;border:none;font-size:20px;color:#6c757d;cursor:pointer;">×</button>
+                                </div>
+                                <div style="padding:20px;display:flex;flex-direction:column;gap:12px;">
+                                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                                        <img id="modalProviderIcon" src="" alt="" style="width:24px;height:24px;border-radius:6px;object-fit:cover;display:none;">
+                                        <div id="modalProviderName" style="font-size:12px;color:#6c757d;"></div>
+                                    </div>
+                                    <label style="font-size:12px;color:#374151;">${t('model.modal.display_name.label')}<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></label>
+                                    <input id="newModelDisplayName" type="text" style="padding:8px;border:1px solid #e1e8ed;border-radius:8px;width:100%;" placeholder="${t('model.modal.display_name.placeholder')}">
+                                    <label style="font-size:12px;color:#374151;">${t('model.modal.model.label')}<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></label>
+                                    <input id="newModelModel" type="text" style="padding:8px;border:1px solid #e1e8ed;border-radius:8px;width:100%;" placeholder="${t('model.modal.model.placeholder')}">
+                                    <label id="newModelApiKeyLabel" style="font-size:12px;color:#374151;">${t('model.modal.api_key.label')}<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></label>
+                                    <input id="newModelApiKey" type="text" style="padding:8px;border:1px solid #e1e8ed;border-radius:8px;width:100%;" placeholder="${t('model.modal.api_key.placeholder')}">
+                                    <label style="font-size:12px;color:#374151;">${t('model.modal.base_url.label')}</label>
+                                    <input id="newModelBaseUrl" type="text" style="padding:8px;border:1px solid #e1e8ed;border-radius:8px;width:100%;" placeholder="${t('model.modal.base_url.placeholder')}">
+                                    <label style="font-size:12px;color:#374151;">${t('model.modal.enable_base64_url.label')}</label>
+                                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                                        <input id="newModelEnableBase64Url" type="checkbox">
+                                        <span style="font-size:12px;color:#6c757d;">${t('model.modal.enable_base64_url.help')}</span>
+                                    </div>
+                                    <label id="newModelArkRegionLabel" style="font-size:12px;color:#374151;display:none;">${t('model.modal.ark_region.label')}</label>
+                                    <input id="newModelArkRegion" type="text" style="padding:8px;border:1px solid #e1e8ed;border-radius:8px;width:100%;display:none;" placeholder="${t('model.modal.ark_region.placeholder')}">
+                                    <label id="newModelOpenAIByAzureLabel" style="font-size:12px;color:#374151;display:none;">${t('model.modal.azure.label')}</label>
+                                    <div id="newModelOpenAIByAzureWrapper" style="display:none;align-items:center;gap:8px;margin-bottom:4px;">
+                                        <input id="newModelOpenAIByAzure" type="checkbox">
+                                        <span style="font-size:12px;color:#6c757d;">${t('model.modal.azure.help')}</span>
+                                    </div>
+                                    <label id="newModelOpenAIApiVersionLabel" style="font-size:12px;color:#374151;display:none;">${t('model.modal.openai_api_version.label')}</label>
+                                     <input id="newModelOpenAIApiVersion" type="text" style="padding:8px;border:1px solid #e1e8ed;border-radius:8px;width:100%;display:none;" placeholder="${t('model.modal.openai_api_version.placeholder')}">
+                                     <label id="newModelGeminiBackendLabel" style="font-size:12px;color:#374151;display:none;">${t('model.modal.gemini_backend.label')}</label>
+                                       <select id="newModelGeminiBackend" style="padding:8px;border:1px solid #e1e8ed;border-radius:8px;width:100%;display:none;">
+                                           <option value="0" selected>${t('model.modal.gemini_backend.unspecified')}</option>
+                    <option value="1">${t('model.modal.gemini_backend.gemini_api')}</option>
+                    <option value="2">${t('model.modal.gemini_backend.vertex_ai')}</option>
+                                       </select>
+                                     <label id="newModelGeminiProjectLabel" style="font-size:12px;color:#374151;display:none;">${t('model.modal.gemini_project.label')}</label>
+                                     <input id="newModelGeminiProject" type="text" style="padding:8px;border:1px solid #e1e8ed;border-radius:8px;width:100%;display:none;" placeholder="${t('model.modal.gemini_project.placeholder')}">
+                                     <label id="newModelGeminiLocationLabel" style="font-size:12px;color:#374151;display:none;">${t('model.modal.gemini_location.label')}</label>
+                                     <input id="newModelGeminiLocation" type="text" style="padding:8px;border:1px solid #e1e8ed;border-radius:8px;width:100%;display:none;" placeholder="${t('model.modal.gemini_location.placeholder')}">
+                                     <label id="newModelThinkingTypeLabel" style="font-size:12px;color:#374151;display:none;">${t('model.modal.thinking_type.label')}</label>
+                                     <select id="newModelThinkingType" style="padding:8px;border:1px solid #e1e8ed;border-radius:8px;width:100%;display:none;">
+                                       <option value="2" selected>${t('model.modal.thinking_type.disable')}</option>
+                                       <option value="1">${t('model.modal.thinking_type.enable')}</option>
+                                       <option id="thinkingTypeAutoOption" value="3" style="display:none;">${t('model.modal.thinking_type.auto')}</option>
+                                     </select>
+                                </div>
+                                <div style="padding:12px 20px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid #f1f3f4;">
+                                    <button onclick="closeAddModelModal()" style="background:#ecf0f1;color:#2c3e50;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;">${t('common.cancel')}</button>
+                                    <button id="addModelSubmitBtn" onclick="saveNewModel()" style="background:#667eea;color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;">${t('common.save')}</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:grid;grid-template-columns:1fr;gap:20px;">
+                            ${providers.map(pm => {
+                                const p = pm.provider || {};
+                                const name = p.name?.zh_cn || p.name?.en_us || t('model.provider.unnamed');
+                                const desc = p.description?.zh_cn || p.description?.en_us || '';
+                                const icon = p.icon_url || p.icon_uri || '';
+                                const models = Array.isArray(pm.model_list) ? pm.model_list : [];
+                                return `
+                                    <div style="background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.08);border:1px solid #e1e8ed;overflow:hidden;">
+                                        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid #f1f3f4;background:#f8f9fa;">
+                                            <div style="display:flex;align-items:center;gap:12px;">
+                                                <img src="${icon}" alt="${name}" onerror="this.style.display='none'" style="width:36px;height:36px;border-radius:8px;object-fit:cover;">
+                                                <div>
+                                                    <div style="font-weight:600;color:#2c3e50;">${name}</div>
+                                                    <div style="color:#6c757d;font-size:12px;">${desc}</div>
+                                                </div>
+                                            </div>
+                                            <button onclick="openAddModelModalWithProvider(this)" data-provider-name="${name}" data-provider-icon="${icon}" data-provider-class="${p.model_class}" style="background:#3498db;color:#fff;border:none;padding:8px 12px;border-radius:6px;font-size:12px;cursor:pointer;">${t('model.actions.add')}</button>
+                                        </div>
+                                        <div style="padding:16px;">
+                                            <div style="color:#7f8c8d;font-size:12px;margin-bottom:12px;">${t('model.provider.model_count', { count: models.length })}</div>
+                                            ${models.map(m => {
+                                                const di = m.display_info || {};
+                                                const conn = m.connection?.base_conn_info || {};
+                                                const modelName = di.name || conn.model || t('model.unnamed');
+                                                const baseUrl = sanitizeUrl(conn.base_url || '');
+                                                const apiKeyMasked = maskApiKey(conn.api_key || '');
+                                                const outputTokens = di.output_tokens ?? '-';
+                                                const maxTokens = di.max_tokens ?? '-';
+                                                const statusText = m.status === 1 ? t('common.enabled') : t('common.disabled');
+                                                const statusColor = m.status === 1 ? '#2ecc71' : '#e74c3c';
+                                                const modelId = m.id ?? m.model_id ?? '';
+                                                return `
+                                                    <div style="border:1px solid #e1e8ed;border-radius:10px;padding:12px;margin-bottom:12px;background:#ffffff;">
+                                                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                                                            <div style="font-weight:500;color:#2c3e50;">${modelName}</div>
+                                                            <div style="display:flex;align-items:center;gap:8px;">
+                                                                <span style="font-size:12px;color:${statusColor};">${statusText}</span>
+                                                                <button onclick="deleteModel('${modelId}')" style="background:#e74c3c;color:#fff;border:none;padding:4px 8px;border-radius:6px;font-size:12px;cursor:pointer;">${t('common.delete')}</button>
+                                                            </div>
+                                                        </div>
+                                                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-top:10px;font-size:12px;color:#374151;">
+                                                            <div>${t('model.field.id')}：${m.id ?? m.model_id ?? '-'}</div>
+                                                            <div>${t('model.field.model')}：${conn.model || '-'}</div>
+                                                            ${p?.model_class === 20 ? '' : `<div>${t('model.field.api_key')}：${apiKeyMasked}</div>`}
+                                                            <div>${t('model.field.base64_url')}：${m.enable_base64_url ? t('common.on') : t('common.off')}</div>
+                                                            ${[2, 3, 11, 15, 20].includes(p?.model_class) ? `<div>${t('model.field.thinking_type')}：${getThinkingTypeText(conn.thinking_type ?? 0)}</div>` : ''}
+                                                            ${p?.model_class === 2 ? `<div>${t('model.field.region')}：${m?.connection?.ark?.region || ''}</div>` : ''}
+                                                            ${p?.model_class === 11 ? `<div>${t('model.field.backend')}：${m?.connection?.gemini?.backend ?? ''}</div><div>${t('model.field.project')}：${m?.connection?.gemini?.project || ''}</div><div>${t('model.field.location')}：${m?.connection?.gemini?.location || ''}</div>` : ''}
+                                                            ${p?.model_class === 1 ? `<div>${t('model.field.azure')}：${(m?.connection?.openai?.by_azure === undefined) ? '' : (m?.connection?.openai?.by_azure ? 'true' : 'false')}</div><div>${t('model.field.api_version')}：${m?.connection?.openai?.api_version || ''}</div>` : ''}
+                                                        </div>
+                                                        <div style="margin-top:8px;font-size:12px;color:#374151;word-break:break-all;">
+                                                            ${t('model.field.endpoint')}：<span style="color:#3498db;">${baseUrl || '-'}</span>
+                                                        </div>
+                                                    </div>
+                                                `;
+                                            }).join('')}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+                pageContent.innerHTML = html;
+            } catch (e) {
+                console.error(t('model.error.render_page_failed'), e);
+                showError(t('model.error.render_page_failed') + ': ' + e.message);
+            }
+        }
+
+        async function deleteModel(id) {
+             try {
+                 if (!id) {
+                     showError(t('model.error.delete_missing_id'));
+                     return;
+                 }
+                 const confirmed = window.confirm(t('model.confirm.delete'));
+                 if (!confirmed) {
+                     return; // 用户取消
+                 }
+                 const resp = await fetch('/api/admin/config/model/delete', {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify({ id: String(id) })
+                 });
+                 if (!resp.ok) {
+                     throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
+                 }
+                 let data;
+                 try {
+                    data = await resp.json();
+                } catch (err) {
+                    showError(t('model.error.delete_invalid_json'));
+                    return;
+                }
+                if (handleApiCode(data)) {
+                    return;
+                }
+                if (data?.code !== 0) {
+                     showError(t('model.error.delete_failed') + ': ' + (data?.msg || t('common.unknown_error')));
+                     return;
+                 }
+                 // 刷新模型列表
+                 await loadModelManagementPage();
+             } catch (error) {
+                 showError(t('model.error.delete_failed') + ': ' + error.message);
+             }
+         }
+ 
+         function openAddModelModalWithProvider(btn) {
+              const modal = document.getElementById('addModelModal');
+              if (!modal) { showError(t('model.error.open_modal_failed')); return; }
+              const nameEl = document.getElementById('modalProviderName');
+              const iconEl = document.getElementById('modalProviderIcon');
+              const providerName = btn?.dataset?.providerName || t('model.provider.unknown');
+              const providerIcon = btn?.dataset?.providerIcon || '';
+              const providerClassStr = btn?.dataset?.providerClass;
+              const providerClass = providerClassStr ? Number(providerClassStr) : undefined;
+              window.__selectedProvider = { name: providerName, icon: providerIcon, model_class: providerClass };
+              if (nameEl) nameEl.textContent = providerName;
+              if (iconEl) {
+                  if (providerIcon) {
+                      iconEl.src = providerIcon; iconEl.alt = providerName; iconEl.style.display = 'block';
+                  } else {
+                      iconEl.src = ''; iconEl.style.display = 'none';
+                  }
+              }
+              // 根据 provider 隐藏或显示 API Key 字段（Ollama 不需要）
+              const apiLabel = document.getElementById('newModelApiKeyLabel');
+              const apiInput = document.getElementById('newModelApiKey');
+              const isOllama = providerClass === 20; // developer_api.ModelClass_Llama
+              if (apiLabel) apiLabel.style.display = isOllama ? 'none' : '';
+              if (apiInput) apiInput.style.display = isOllama ? 'none' : '';
+              // 根据 provider 显示 Ark 的 Region 字段（仅 Doubao/Ark，class=2）
+              const arkLabel = document.getElementById('newModelArkRegionLabel');
+              const arkInput = document.getElementById('newModelArkRegion');
+              const isArk = providerClass === 2;
+              if (arkLabel) arkLabel.style.display = isArk ? '' : 'none';
+              if (arkInput) arkInput.style.display = isArk ? '' : 'none';
+              // 根据 provider 显示 OpenAI 的 Azure 与 API Version 字段（仅 OpenAI，class=1）
+              const openaiByAzureLabel = document.getElementById('newModelOpenAIByAzureLabel');
+              const openaiByAzureWrapper = document.getElementById('newModelOpenAIByAzureWrapper');
+              const openaiApiVersionLabel = document.getElementById('newModelOpenAIApiVersionLabel');
+              const openaiApiVersionInput = document.getElementById('newModelOpenAIApiVersion');
+              const isOpenAI = providerClass === 1;
+              if (openaiByAzureLabel) openaiByAzureLabel.style.display = isOpenAI ? '' : 'none';
+              if (openaiByAzureWrapper) openaiByAzureWrapper.style.display = isOpenAI ? 'flex' : 'none';
+              if (openaiApiVersionLabel) openaiApiVersionLabel.style.display = isOpenAI ? '' : 'none';
+              if (openaiApiVersionInput) openaiApiVersionInput.style.display = isOpenAI ? '' : 'none';
+              // 根据 provider 显示 Gemini 的后端、项目、位置（仅 Gemini，class=11）
+              const geminiBackendLabel = document.getElementById('newModelGeminiBackendLabel');
+              const geminiBackendInput = document.getElementById('newModelGeminiBackend');
+              const geminiProjectLabel = document.getElementById('newModelGeminiProjectLabel');
+              const geminiProjectInput = document.getElementById('newModelGeminiProject');
+              const geminiLocationLabel = document.getElementById('newModelGeminiLocationLabel');
+              const geminiLocationInput = document.getElementById('newModelGeminiLocation');
+              const isGemini = providerClass === 11;
+              if (geminiBackendLabel) geminiBackendLabel.style.display = isGemini ? '' : 'none';
+              if (geminiBackendInput) geminiBackendInput.style.display = isGemini ? '' : 'none';
+              if (geminiProjectLabel) geminiProjectLabel.style.display = isGemini ? '' : 'none';
+              if (geminiProjectInput) geminiProjectInput.style.display = isGemini ? '' : 'none';
+              if (geminiLocationLabel) geminiLocationLabel.style.display = isGemini ? '' : 'none';
+              if (geminiLocationInput) geminiLocationInput.style.display = isGemini ? '' : 'none';
+              
+              // Show/hide ThinkingType dropdown
+              const thinkingTypeLabel = document.getElementById('newModelThinkingTypeLabel');
+              const thinkingTypeSelect = document.getElementById('newModelThinkingType');
+              const thinkingTypeAutoOption = document.getElementById('thinkingTypeAutoOption');
+              const hasThinkingType = [2, 3, 11, 15, 20].includes(providerClass); // Ark, Claude, Gemini, Qwen, Ollama
+              const isArkProvider = providerClass === 2;
+              if (thinkingTypeLabel) thinkingTypeLabel.style.display = hasThinkingType ? '' : 'none';
+              if (thinkingTypeSelect) {
+                  thinkingTypeSelect.style.display = hasThinkingType ? '' : 'none';
+                  thinkingTypeSelect.value = '2'; // Reset to Disable
+              }
+              if (thinkingTypeAutoOption) thinkingTypeAutoOption.style.display = isArkProvider ? '' : 'none';
+              
+              modal.style.display = 'flex';
+          }
+          function closeAddModelModal() {
+              const modal = document.getElementById('addModelModal');
+              if (modal) modal.style.display = 'none';
+          }
+          async function saveNewModel() {
+              const name = document.getElementById('newModelDisplayName')?.value?.trim() || '';
+              const model = document.getElementById('newModelModel')?.value?.trim() || '';
+              const apiKey = document.getElementById('newModelApiKey')?.value?.trim() || '';
+              const baseUrl = document.getElementById('newModelBaseUrl')?.value?.trim() || '';
+              // 允许 Base URL 为空；仅对必填项做校验，并在保存期间禁用按钮与显示提示
+              const submitBtn = document.getElementById('addModelSubmitBtn');
+              const restoreSavingState = () => {
+                  if (submitBtn) {
+                      submitBtn.disabled = false;
+                      if (submitBtn.dataset.originalText) submitBtn.textContent = submitBtn.dataset.originalText;
+                      submitBtn.style.opacity = '';
+                      submitBtn.style.cursor = 'pointer';
+                  }
+              };
+              if (submitBtn) {
+                  submitBtn.disabled = true;
+                  submitBtn.dataset.originalText = submitBtn.textContent;
+                  submitBtn.textContent = t('common.saving');
+                  submitBtn.style.opacity = '0.7';
+                  submitBtn.style.cursor = 'not-allowed';
+              }
+              const providerClass = window.__selectedProvider?.model_class;
+              if (typeof providerClass !== 'number') {
+                  showError(t('model.error.provider_unrecognized'));
+                  restoreSavingState();
+                  return;
+              }
+              const requireApiKey = providerClass !== 20; // Ollama 不需要 API Key
+              if (!name || !model || (requireApiKey && !apiKey)) {
+                  const missingMsg = requireApiKey ? t('model.error.missing_required_with_api') : t('model.error.missing_required');
+                  showError(missingMsg);
+                  restoreSavingState();
+                  return;
+              }
+              // 构造 payload，Base URL 为空时不传该字段；Ollama 不传 api_key
+              const baseConn = { model: model };
+              if (baseUrl) baseConn.base_url = baseUrl;
+              if (requireApiKey && apiKey) baseConn.api_key = apiKey;
+              
+              // 读取 ThinkingType（仅 Ark, Claude, Gemini, Qwen, Ollama）
+              const thinkingTypeSelect = document.getElementById('newModelThinkingType');
+              const hasThinkingType = [2, 3, 11, 15, 20].includes(providerClass);
+              if (hasThinkingType && thinkingTypeSelect) {
+                  const thinkingTypeValue = parseInt(thinkingTypeSelect.value, 10);
+                  if (!Number.isNaN(thinkingTypeValue)) {
+                      baseConn.thinking_type = thinkingTypeValue;
+                  }
+              }
+              // 读取“启用 Base64 URL”复选框，默认 false
+              const enableBase64UrlEl = document.getElementById('newModelEnableBase64Url');
+              const enableBase64Url = !!(enableBase64UrlEl && enableBase64UrlEl.checked);
+              const arkRegionInput = document.getElementById('newModelArkRegion');
+              const arkRegion = arkRegionInput ? arkRegionInput.value.trim() : '';
+              const connection = { base_conn_info: baseConn };
+              if (providerClass === 2) {
+                  connection.ark = { region: arkRegion };
+              }
+              // 读取 OpenAI 扩展字段（仅 providerClass=1）
+              const openaiByAzureEl = document.getElementById('newModelOpenAIByAzure');
+              const openaiByAzure = !!(openaiByAzureEl && openaiByAzureEl.checked);
+              const openaiApiVersionEl = document.getElementById('newModelOpenAIApiVersion');
+              const openaiApiVersion = openaiApiVersionEl ? openaiApiVersionEl.value.trim() : '';
+              if (providerClass === 1 && (openaiByAzure || openaiApiVersion)) {
+                  const openaiObj = {};
+                  // 如果任一字段有值，则组装 openai 对象；by_azure 始终按当前开关状态传递
+                  openaiObj.by_azure = openaiByAzure;
+                  if (openaiApiVersion) openaiObj.api_version = openaiApiVersion;
+                  connection.openai = openaiObj;
+              }
+              // 读取 Gemini 扩展字段（仅 providerClass=11），按需写入
+              const geminiBackendEl = document.getElementById('newModelGeminiBackend');
+              const geminiProjectEl = document.getElementById('newModelGeminiProject');
+              const geminiLocationEl = document.getElementById('newModelGeminiLocation');
+              const geminiBackendRaw = geminiBackendEl ? geminiBackendEl.value.trim() : '';
+              const hasGeminiBackend = geminiBackendRaw !== '';
+              const geminiBackend = hasGeminiBackend ? parseInt(geminiBackendRaw, 10) : NaN;
+              const geminiProject = geminiProjectEl ? geminiProjectEl.value.trim() : '';
+              const geminiLocation = geminiLocationEl ? geminiLocationEl.value.trim() : '';
+              if (providerClass === 11 && (hasGeminiBackend || geminiProject || geminiLocation)) {
+                  const geminiObj = {};
+                  if (hasGeminiBackend && !Number.isNaN(geminiBackend)) geminiObj.backend = geminiBackend;
+                  if (geminiProject) geminiObj.project = geminiProject;
+                  if (geminiLocation) geminiObj.location = geminiLocation;
+                  connection.gemini = geminiObj;
+              }
+              const payload = {
+                  model_name: name,
+                  model_class: providerClass,
+                  enable_base64_url: enableBase64Url,
+                  connection
+              };
+              try {
+                  const resp = await fetch('/api/admin/config/model/create', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(payload)
+                  });
+                  // 不依赖 resp.ok，统一按“JSON 优先，文本兜底”处理
+                  let rawText = '';
+                  try {
+                      rawText = await resp.text();
+                  } catch (e) {
+                      showError(t('model.error.create_read_failed'));
+                      return;
+                  }
+                  let data = null;
+                  try {
+                      data = JSON.parse(rawText);
+                  } catch (e) {
+                      data = null;
+                  }
+                  if (data && typeof data === 'object') {
+                      if (handleApiCode(data)) {
+                          return;
+                      }
+                      const code = Number(data.code);
+                      if (code === 0) {
+                          closeAddModelModal();
+                          showSuccess(t('model.create.success'));
+                          await loadModelManagementPage();
+                          return;
+                      }
+                      showError(t('model.error.create_failed') + ': ' + (data?.msg || `HTTP ${resp.status}`));
+                      return;
+                  } else {
+                      showError(`${t('model.error.create_failed')}: HTTP ${resp.status} ${rawText || ''}`);
+                      return;
+                  }
+              } catch (error) {
+                  showError(t('model.error.create_failed') + ': ' + error.message);
+              } finally {
+                  restoreSavingState();
+              }
+          }
+
+          // 知识库配置页面：加载与渲染（支持本地预览示例数据兜底）
+          async function loadKnowledgeConfigPage() {
+              ensureConfigStylesInjected();
+              try {
+                  showLoading();
+                  const currentHost = window.location.origin;
+                  const apiUrl = `${currentHost}/api/admin/config/knowledge/get`;
+                  const resp = await fetch(apiUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
+                  if (!resp.ok) {
+                      throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
+                  }
+                  let data;
+                  try {
+                      data = await resp.json();
+                  } catch (err) {
+                      if (isLocalPreview()) {
+                          renderDemo();
+                          return;
+                      }
+                      showError(t('knowledge.error.load_failed_json'));
+                      return;
+                  }
+                  if (handleApiCode(data)) {
+                      return;
+                  }
+                  if (typeof data?.code === 'number' && data.code !== 0) {
+                      if (isLocalPreview()) { renderDemo(); return; }
+                      showError(t('knowledge.error.load_failed_msg', { msg: (data?.msg || t('error.api_error')) }));
+                      return;
+                  }
+                  if (!data?.knowledge_config) {
+                      if (isLocalPreview()) {
+                          renderDemo();
+                          return;
+                      }
+                      showError(t('knowledge.error.load_failed_empty'));
+                      return;
+                  }
+                  renderKnowledgeConfig(data.knowledge_config);
+              } catch (error) {
+                  console.error(t('knowledge.error.load_failed') + ':', error);
+                  if (isLocalPreview()) {
+                      renderDemo();
+                      return;
+                  }
+                  showError(t('knowledge.error.load_failed_reason', { reason: error.message }));
+              }
+
+              function isLocalPreview() {
+                  const host = window.location.hostname;
+                  return host === 'localhost' || host === '127.0.0.1';
+              }
+
+              function renderDemo() {
+                  // 不再注入示例数据，使用空配置进行页面渲染以便本地预览 UI
+                  renderKnowledgeConfig({});
+                  console.info(t('knowledge.log.local_preview_no_demo'));
+              }
+          }
+
+          function formatValue(val) {
+              if (val === undefined || val === null) return '';
+              return String(val);
+          }
+
+          function renderKnowledgeConfig(cfg) {
+              try {
+                  const embedding = cfg?.embedding_config || {};
+                  const rerank = cfg?.rerank_config || {};
+                  const ocr = cfg?.ocr_config || {};
+                  const parser = cfg?.parser_config || {};
+                  const builtinModelId = cfg?.builtin_model_id ?? '';
+
+                  const conn = embedding?.connection || {};
+                  const baseConn = conn?.base_conn_info || {};
+                  const embeddingInfo = conn?.embedding_info || {};
+
+                  const initial = {
+                      embedding_type: embedding?.type ?? '',
+                      embedding_max_batch_size: Number(embedding?.max_batch_size ?? 100),
+                      ark_base_url:  baseConn?.base_url || '',
+                      ark_api_key:  baseConn?.api_key || '',
+                      ark_region: conn?.ark?.region || '',
+                      ark_model: baseConn?.model || '',
+                      ark_embedding_dims: embeddingInfo?.dims ?? '0',
+                      ark_embedding_api_type: conn?.ark?.embedding_api_type || conn?.ark?.api_type || '',
+                      openai_base_url: baseConn?.base_url || '',
+                      openai_api_key:  baseConn?.api_key || '',
+                      openai_model:  baseConn?.model || '',
+                      openai_embedding_dims: embeddingInfo?.dims ?? '0',
+                      openai_embedding_by_azure: Boolean(conn?.openai?.embedding_by_azure ?? conn?.openai?.by_azure),
+                      openai_embedding_api_version: conn?.openai?.embedding_api_version ?? conn?.openai?.api_version ?? '',
+                      ollama_base_url: baseConn?.base_url || '',
+                      ollama_model: baseConn?.model || '',
+                      ollama_embedding_dims: embeddingInfo?.dims ?? '0',
+                      gemini_base_url:  baseConn?.base_url || '',
+                      gemini_api_key:  baseConn?.api_key || '',
+                      gemini_model:  baseConn?.model || '',
+                      gemini_embedding_dims: embeddingInfo?.dims ?? '0',
+                      gemini_embedding_backend: conn?.gemini?.embedding_backend ?? conn?.gemini?.backend ?? '',
+                      gemini_embedding_project: conn?.gemini?.embedding_project ?? conn?.gemini?.project ?? '',
+                      gemini_embedding_location: conn?.gemini?.embedding_location ?? conn?.gemini?.location ?? '',
+                      http_address: conn?.http?.address || '',
+                      http_dims: embeddingInfo?.dims ?? '0',
+                      rerank_type: rerank?.type ?? '',
+                      vik_ak: rerank?.vikingdb_config?.ak || '',
+                      vik_sk: rerank?.vikingdb_config?.sk || '',
+                      vik_host: rerank?.vikingdb_config?.host || '',
+                      vik_region: rerank?.vikingdb_config?.region || '',
+                      vik_model: rerank?.vikingdb_config?.model || '',
+                      ocr_type: ocr?.type ?? '',
+                      ocr_ark_ak: ocr?.ark_ak || ocr?.volcengine_ak || '',
+                      ocr_ark_sk: ocr?.ark_sk || ocr?.volcengine_sk || '',
+                      ocr_paddleocr_api_url: ocr?.paddleocr_api_url || '',
+                      parser_type: parser?.type ?? '',
+                      parser_paddleocr_structure_api_url: parser?.paddleocr_structure_api_url || '',
+                      builtin_model_id: builtinModelId ?? ''
+                  };
+
+                  if (initial.embedding_type==0) {
+                    initial.openai_api_key ='';
+                    initial.openai_base_url ='';
+                    initial.openai_model ='';
+                    initial.openai_embedding_dims ='';
+                    initial.ollama_base_url ='';
+                    initial.ollama_model ='';
+                    initial.ollama_embedding_dims ='';
+                    initial.gemini_base_url ='';
+                    initial.gemini_api_key ='';
+                    initial.gemini_model ='';
+                    initial.gemini_embedding_dims ='';
+                    initial.http_address ='';
+                    initial.http_dims ='';
+                  }else if (initial.embedding_type==1) {
+                    initial.ark_base_url ='';
+                    initial.ark_api_key ='';
+                    initial.ark_region ='';
+                    initial.ark_model ='';
+                    initial.ark_embedding_dims ='';
+                    initial.ollama_base_url ='';
+                    initial.ollama_model ='';
+                    initial.ollama_embedding_dims ='';
+                    initial.gemini_base_url ='';
+                    initial.gemini_api_key ='';
+                    initial.gemini_model ='';
+                    initial.gemini_embedding_dims ='';
+                    initial.http_address ='';
+                    initial.http_dims ='';
+                  } else if (initial.embedding_type==2) {
+                    initial.openai_api_key ='';
+                    initial.openai_base_url ='';
+                    initial.openai_model ='';
+                    initial.openai_embedding_dims ='';
+                    initial.ark_base_url ='';
+                    initial.ark_api_key ='';
+                    initial.ark_region ='';
+                    initial.ark_model ='';
+                    initial.ark_embedding_dims ='';
+                    initial.gemini_base_url ='';
+                    initial.gemini_api_key ='';
+                    initial.gemini_model ='';
+                    initial.http_address ='';
+                    initial.http_dims ='';
+                  } else if (initial.embedding_type==3) {
+                    initial.openai_api_key ='';
+                    initial.openai_base_url ='';
+                    initial.openai_model ='';
+                    initial.openai_embedding_dims ='';
+                    initial.ark_base_url ='';
+                    initial.ark_api_key ='';
+                    initial.ark_region ='';
+                    initial.ark_model ='';
+                    initial.ark_embedding_dims ='';
+                    initial.ollama_base_url ='';
+                    initial.ollama_model ='';
+                    initial.ollama_embedding_dims ='';
+                    initial.http_address ='';
+                    initial.http_dims ='';
+                  } else if (initial.embedding_type==4) {
+                    initial.openai_api_key ='';
+                    initial.openai_base_url ='';
+                    initial.openai_model ='';
+                    initial.openai_embedding_dims ='';
+                    initial.ark_base_url ='';
+                    initial.ark_api_key ='';
+                    initial.ark_region ='';
+                    initial.ark_model ='';
+                    initial.ark_embedding_dims ='';
+                    initial.ollama_base_url ='';
+                    initial.ollama_model ='';
+                    initial.ollama_embedding_dims ='';
+                    initial.gemini_base_url ='';
+                    initial.gemini_api_key ='';
+                    initial.gemini_model ='';
+                    initial.gemini_embedding_dims ='';
+                  }
+
+                  const inputStyle = "width:100%;padding:8px;border:1px solid #e1e8ed;border-radius:6px;font-size:12px;";
+                  const labelStyle = "font-size:12px;color:#374151;margin-bottom:6px;";
+                  const groupGrid = "display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;";
+
+                  const html = `
+                      <div style="padding: 30px;">
+                        <div style="display:grid;grid-template-columns:1fr;gap:20px;">
+
+                          <!-- Group 1: Embedding 配置 -->
+                          <div style="background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.08);border:1px solid #e1e8ed;overflow:hidden;">
+                            <div style="padding:16px;border-bottom:1px solid #f1f3f4;background:#f8f9fa;">
+                              <div style="font-weight:600;color:#2c3e50;">${t('knowledge.section.embedding')}</div>
+                            </div>
+                            <div style="padding:16px;">
+                              <div style="${groupGrid}">
+                                <div>
+                                  <div style="${labelStyle}">Type</div>
+                                  <select id="kb_embedding_type" style="${inputStyle}" onchange="onEmbeddingTypeChange()">
+                                    <option value="0" ${Number(initial.embedding_type) === 0 ? 'selected' : ''}>Ark</option>
+                                    <option value="1" ${Number(initial.embedding_type) === 1 ? 'selected' : ''}>OpenAI</option>
+                                    <option value="2" ${Number(initial.embedding_type) === 2 ? 'selected' : ''}>Ollama</option>
+                                    <option value="3" ${Number(initial.embedding_type) === 3 ? 'selected' : ''}>Gemini</option>
+                                    <option value="4" ${Number(initial.embedding_type) === 4 ? 'selected' : ''}>HTTP</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <div style="${labelStyle}">Max Batch Size</div>
+                                  <input id="kb_embedding_max_batch_size" type="number" style="${inputStyle}" value="${initial.embedding_max_batch_size}" />
+                                </div>
+                              </div>
+
+                              <div id="kb_conn_ark" style="margin-top:12px;border:1px solid #f1f3f4;border-radius:8px;padding:12px;">
+                                <div style="font-weight:600;color:#2c3e50;margin-bottom:8px;">${t('knowledge.connection', { name: 'Ark' })}</div>
+                                <div style="${groupGrid}">
+                                  <div>
+                                    <div style="${labelStyle}">Base URL<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></div>
+                                    <input id="kb_ark_base_url" type="text" style="${inputStyle}" value="${initial.ark_base_url}" />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">API Key<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></div>
+                                    <input id="kb_ark_api_key" type="text" style="${inputStyle}" value="${initial.ark_api_key}" />
+                                  </div>
+                                  <div style="display:none;">
+                                    <div style="${labelStyle}">Region</div>
+                                    <input id="kb_ark_region" type="text" style="${inputStyle}" value="${initial.ark_region}" />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">Model<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></div>
+                                    <input id="kb_ark_model" type="text" style="${inputStyle}" value="${initial.ark_model}" />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">Dims</div>
+                                    <input id="kb_ark_embedding_dims" type="number" min="0" style="${inputStyle}" value="${initial.ark_embedding_dims}" />
+                                </div>
+                                  <div>
+                                    <div style="${labelStyle}">API Type</div>
+                                    <select id="kb_ark_embedding_api_type" style="${inputStyle}">
+                                      <option value="text_api" ${initial.ark_embedding_api_type === 'text_api' ? 'selected' : ''}>text_api</option>
+                                      <option value="multi_modal_api" ${initial.ark_embedding_api_type === 'multi_modal_api' ? 'selected' : ''}>multi_modal_api</option>
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div id="kb_conn_openai" style="margin-top:12px;border:1px solid #f1f3f4;border-radius:8px;padding:12px;">
+                                <div style="font-weight:600;color:#2c3e50;margin-bottom:8px;">${t('knowledge.connection', { name: 'OpenAI' })}</div>
+                                <div style="${groupGrid}">
+                                  <!-- 必填字段优先显示：Base URL、Model、API Key、Dims（红点） -->
+                                  <div>
+                                    <div style="${labelStyle}">Base URL<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></div>
+                                    <input id="kb_openai_base_url" type="text" style="${inputStyle}" value="${initial.openai_base_url}" />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">Model<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></div>
+                                    <input id="kb_openai_model" type="text" style="${inputStyle}" value="${initial.openai_model}" />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">API Key<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></div>
+                                    <input id="kb_openai_api_key" type="text" style="${inputStyle}" value="${initial.openai_api_key}" />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">Dims</div>
+                                    <input id="kb_openai_embedding_dims" type="number" min="0" style="${inputStyle}" value="${initial.openai_embedding_dims}" />
+                                </div>
+                                  <!-- 选填字段靠后显示：By Azure、API Version、Request Dims -->
+                                  <div>
+                                    <div style="${labelStyle}">By Azure</div>
+                                    <input id="kb_openai_embedding_by_azure" type="checkbox" ${initial.openai_embedding_by_azure ? 'checked' : ''} />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">Embedding API Version</div>
+                                    <input id="kb_openai_embedding_api_version" type="text" style="${inputStyle}" value="${initial.openai_embedding_api_version}" />
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div id="kb_conn_ollama" style="margin-top:12px;border:1px solid #f1f3f4;border-radius:8px;padding:12px;">
+                                <div style="font-weight:600;color:#2c3e50;margin-bottom:8px;">${t('knowledge.connection', { name: 'Ollama' })}</div>
+                                <div style="${groupGrid}">
+                                  <div>
+                                    <div style="${labelStyle}">Base URL<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></div>
+                                    <input id="kb_ollama_base_url" type="text" style="${inputStyle}" value="${initial.ollama_base_url}" />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">Model<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></div>
+                                    <input id="kb_ollama_model" type="text" style="${inputStyle}" value="${initial.ollama_model}" />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">Dims</div>
+                                    <input id="kb_ollama_embedding_dims" type="number" min="0" style="${inputStyle}" value="${initial.ollama_embedding_dims}" />
+                                </div>
+                                </div>
+                              </div>
+
+                              <div id="kb_conn_gemini" style="margin-top:12px;border:1px solid #f1f3f4;border-radius:8px;padding:12px;">
+                                <div style="font-weight:600;color:#2c3e50;margin-bottom:8px;">${t('knowledge.connection', { name: 'Gemini' })}</div>
+                                <div style="${groupGrid}">
+                                  <div>
+                                    <div style="${labelStyle}">Base URL<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></div>
+                                    <input id="kb_gemini_base_url" type="text" style="${inputStyle}" value="${initial.gemini_base_url}" />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">API Key<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></div>
+                                    <input id="kb_gemini_api_key" type="text" style="${inputStyle}" value="${initial.gemini_api_key}" />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">Model<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></div>
+                                    <input id="kb_gemini_model" type="text" style="${inputStyle}" value="${initial.gemini_model}" />
+                                  </div>
+                           
+                                  <div>
+                                    <div style="${labelStyle}">Backend<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></div>
+                                    <input id="kb_gemini_embedding_backend" type="number" style="${inputStyle}" value="${initial.gemini_embedding_backend}" />
+                                  </div>
+                                <div>
+                                    <div style="${labelStyle}">Dims</div>
+                                    <input id="kb_gemini_embedding_dims" type="number" min="0" style="${inputStyle}" value="${initial.gemini_embedding_dims}" />
+                                </div>
+                                  <div>
+                                    <div style="${labelStyle}">Project</div>
+                                    <input id="kb_gemini_embedding_project" type="text" style="${inputStyle}" value="${initial.gemini_embedding_project}" />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">Location</div>
+                                    <input id="kb_gemini_embedding_location" type="text" style="${inputStyle}" value="${initial.gemini_embedding_location}" />
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div id="kb_conn_http" style="margin-top:12px;border:1px solid #f1f3f4;border-radius:8px;padding:12px;">
+                                <div style="font-weight:600;color:#2c3e50;margin-bottom:8px;">${t('knowledge.connection', { name: 'HTTP' })}</div>
+                                <div style="${groupGrid}">
+                                  <div>
+                                    <div style="${labelStyle}">Address<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></div>
+                                    <input id="kb_http_address" type="text" style="${inputStyle}" value="${initial.http_address}" />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">Dims</div>
+                                    <input id="kb_http_dims" type="number" min="0" style="${inputStyle}" value="${initial.http_dims}" />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Group 2: Rerank 配置 -->
+                          <div style="background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.08);border:1px solid #e1e8ed;overflow:hidden;">
+                            <div style="padding:16px;border-bottom:1px solid #f1f3f4;background:#f8f9fa;">
+                              <div style="font-weight:600;color:#2c3e50;">${t('knowledge.section.rerank')}</div>
+                            </div>
+                            <div style="padding:16px;">
+                              <div style="${groupGrid}">
+                                <div>
+                                  <div style="${labelStyle}">Type</div>
+                                  <select id="kb_rerank_type" style="${inputStyle}" onchange="onRerankTypeChange()">
+                                    <option value="0" ${Number(initial.rerank_type) === 0 ? 'selected' : ''}>VikingDB</option>
+                                    <option value="1" ${Number(initial.rerank_type) === 1 ? 'selected' : ''}>RRF</option>
+                                  </select>
+                                </div>
+                              </div>
+                              <div id="kb_conn_vikingdb" style="margin-top:12px;border:1px solid #f1f3f4;border-radius:8px;padding:12px;">
+                                <div style="font-weight:600;color:#2c3e50;margin-bottom:8px;">VikingDB</div>
+                                <div style="${groupGrid}">
+                                  <div>
+                                    <div style="${labelStyle}">AK<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></div>
+                                    <input id="kb_vik_ak" type="text" style="${inputStyle}" value="${initial.vik_ak}" />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">SK<span style="display:inline-block;width:6px;height:6px;background:#e74c3c;border-radius:50%;margin-left:6px;"></span></div>
+                                    <input id="kb_vik_sk" type="text" style="${inputStyle}" value="${initial.vik_sk}" />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">Host</div>
+                                    <input id="kb_vik_host" type="text" style="${inputStyle}" value="${initial.vik_host}" />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">Region</div>
+                                    <input id="kb_vik_region" type="text" style="${inputStyle}" value="${initial.vik_region}" />
+                                  </div>
+                                  <div>
+                                    <div style="${labelStyle}">Model</div>
+                                    <input id="kb_vik_model" type="text" style="${inputStyle}" value="${initial.vik_model}" />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Group 3: OCR 配置 -->
+                          <div style="background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.08);border:1px solid #e1e8ed;overflow:hidden;">
+                            <div style="padding:16px;border-bottom:1px solid #f1f3f4;background:#f8f9fa;">
+                              <div style="font-weight:600;color:#2c3e50;">${t('knowledge.section.ocr')}</div>
+                            </div>
+                            <div style="padding:16px;">
+                              <div style="${groupGrid}">
+                                <div>
+                                  <div style="${labelStyle}">Type</div>
+                                  <select id="kb_ocr_type" style="${inputStyle}" onchange="onOcrTypeChange()">
+                                    <option value="0" ${Number(initial.ocr_type) === 0 ? 'selected' : ''}>Volcengine</option>
+                                    <option value="1" ${Number(initial.ocr_type) === 1 ? 'selected' : ''}>Paddleocr</option>
+                                  </select>
+                                </div>
+                                <div id="kb_conn_ocr_volcengine">
+                                  <div style="${labelStyle}">Volcengine AK</div>
+                                  <input id="kb_ocr_ark_ak" type="text" style="${inputStyle}" value="${initial.ocr_ark_ak}" />
+                                  <div style="${labelStyle};margin-top:12px;">Volcengine SK</div>
+                                  <input id="kb_ocr_ark_sk" type="text" style="${inputStyle}" value="${initial.ocr_ark_sk}" />
+                                </div>
+                                <div id="kb_conn_ocr_paddleocr">
+                                  <div style="${labelStyle}">PaddleOCR API URL</div>
+                                  <input id="kb_ocr_paddleocr_api_url" type="text" style="${inputStyle}" value="${initial.ocr_paddleocr_api_url}" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Group 4: Parser 配置 -->
+                          <div style="background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.08);border:1px solid #e1e8ed;overflow:hidden;">
+                            <div style="padding:16px;border-bottom:1px solid #f1f3f4;background:#f8f9fa;">
+                              <div style="font-weight:600;color:#2c3e50;">${t('knowledge.section.parser')}</div>
+                            </div>
+                            <div style="padding:16px;">
+                              <div style="${groupGrid}">
+                                <div>
+                                  <div style="${labelStyle}">Type</div>
+                                  <select id="kb_parser_type" style="${inputStyle}" onchange="onParserTypeChange()">
+                                    <option value="0" ${Number(initial.parser_type) === 0 ? 'selected' : ''}>Builtin</option>
+                                    <option value="1" ${Number(initial.parser_type) === 1 ? 'selected' : ''}>Paddleocr</option>
+                                  </select>
+                                </div>
+                                <div id="kb_conn_parser_paddleocr">
+                                  <div style="${labelStyle}">PaddleOCR API URL</div>
+                                  <input id="kb_parser_paddleocr_structure_api_url" type="text" style="${inputStyle}" value="${initial.parser_paddleocr_structure_api_url}" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Group 5: 内置模型配置 -->
+                          <div id="kb_builtin_model_group" style="background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.08);border:1px solid #e1e8ed;overflow:hidden;">
+                            <div style="padding:16px;border-bottom:1px solid #f1f3f4;background:#f8f9fa;">
+                              <div style="font-weight:600;color:#2c3e50;">${t('knowledge.section.builtin_model')}</div>
+                            </div>
+                            <div style="padding:16px;">
+                              <div style="${groupGrid}">
+                                <div>
+                                  <div style="${labelStyle}">${t('knowledge.label.choose_builtin_model')}</div>
+                                  <div id="kb_builtin_model_select" style="position:relative;">
+                                    <div id="kb_builtin_model_selected" style="display:flex;align-items:center;gap:8px;border:1px solid #e1e8ed;border-radius:8px;padding:8px;cursor:pointer;">
+                                      <img id="kb_builtin_model_selected_icon" src="" alt="" style="width:20px;height:20px;border-radius:4px;object-fit:contain;display:none;">
+                                      <span id="kb_builtin_model_selected_name" style="color:#2c3e50;">${t('knowledge.placeholder.select_model')}</span>
+                                      <span style="margin-left:auto;color:#7b8a8b;">▼</span>
+                                    </div>
+                                    <div id="kb_builtin_model_dropdown" style="margin-top:8px;background:#fff;border:1px solid #e1e8ed;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08);max-height:240px;overflow:auto;display:none;z-index:10;">
+                                      <div id="kb_builtin_model_loading" style="padding:8px;color:#7b8a8b;">${t('knowledge.loading.model_list')}</div>
+                                    </div>
+                                  </div>
+                                  <input id="kb_builtin_model_id" type="hidden" value="${initial.builtin_model_id}" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                        </div>
+                        <div class="action-buttons">
+                          <button type="button" class="btn btn-primary" onclick="saveKnowledgeConfig()">💾 ${t('btn.save')}</button>
+                        </div>
+                      </div>
+                  `;
+                  pageContent.innerHTML = html;
+                  try {
+                    const builtinGroup = document.getElementById('kb_builtin_model_group');
+                    if (builtinGroup && builtinGroup.parentElement) {
+                      builtinGroup.parentElement.insertBefore(builtinGroup, builtinGroup.parentElement.firstElementChild);
+                    }
+                  } catch (_) {}
+                  try { setEmbeddingTypeUI(Number(initial.embedding_type ?? 0)); } catch (_) {}
+                  try { setRerankTypeUI(Number(initial.rerank_type ?? 0)); } catch (_) {}
+                  try { setOcrTypeUI(Number(initial.ocr_type ?? 0)); } catch (_) {}
+                  try { setParserTypeUI(Number(initial.parser_type ?? 0)); } catch (_) {}
+                  try { initBuiltinModelSelect(initial.builtin_model_id); } catch (_) {}
+              } catch (e) {
+                  console.error(t('knowledge.error.render_failed') + ':', e);
+                  showError(t('knowledge.error.render_failed') + ': ' + e.message);
+              }
+          }
+
+          // 显示加载状态}
+
+          // 内置模型下拉：初始化与渲染
+          function initBuiltinModelSelect(initialModelId) {
+            try {
+              const container = document.getElementById('kb_builtin_model_select');
+              const selected = document.getElementById('kb_builtin_model_selected');
+              const nameEl = document.getElementById('kb_builtin_model_selected_name');
+              const iconEl = document.getElementById('kb_builtin_model_selected_icon');
+              const dropdownEl = document.getElementById('kb_builtin_model_dropdown');
+              const hiddenInput = document.getElementById('kb_builtin_model_id');
+              if (!container || !selected || !dropdownEl || !hiddenInput) { return; }
+
+              const normalizedInitialId = (initialModelId === undefined || initialModelId === null) ? undefined : String(initialModelId).trim();
+
+              // toggle dropdown
+              selected.onclick = function() {
+                const isOpen = dropdownEl.style.display !== 'none';
+                dropdownEl.style.display = isOpen ? 'none' : 'block';
+              };
+              document.addEventListener('click', function(e) {
+                if (!container.contains(e.target)) {
+                  dropdownEl.style.display = 'none';
+                }
+              });
+
+              dropdownEl.innerHTML = '<div id="kb_builtin_model_loading" style="padding:8px;color:#7b8a8b;">' + t('knowledge.loading.model_list') + '</div>';
+
+              fetch('/api/admin/config/model/list', { method: 'GET' })
+                .then(resp => resp.json())
+                .then(data => {
+                  if (handleApiCode(data)) {
+                    return;
+                  }
+                  const groups = data?.provider_model_list ?? data?.ProviderModelList ?? [];
+                  dropdownEl.innerHTML = '';
+                  if (!Array.isArray(groups) || groups.length === 0) {
+                    dropdownEl.innerHTML = '<div style="padding:8px;color:#bdc3c7;">' + t('knowledge.empty.model_list') + '</div>';
+                    return;
+                  }
+
+                  let selectedFound = false;
+
+                  groups.forEach(group => {
+                    const provider = group.provider ?? group.Provider;
+                    const icon = provider?.icon_url ?? provider?.IconURL ?? '';
+                    const models = group.model_list ?? group.ModelList ?? [];
+                    models.forEach(m => {
+                      const id = m.id ?? m.ID;
+                      const name = (m.display_info?.name) ?? (m.DisplayInfo?.Name);
+                      const opt = document.createElement('div');
+                      opt.style.display = 'flex';
+                      opt.style.alignItems = 'center';
+                      opt.style.gap = '8px';
+                      opt.style.padding = '8px';
+                      opt.style.cursor = 'pointer';
+                      opt.style.borderBottom = '1px solid #f1f3f4';
+                      opt.onmouseenter = function(){ opt.style.background = '#f8f9fa'; };
+                      opt.onmouseleave = function(){ opt.style.background = '#fff'; };
+
+                      const img = document.createElement('img');
+                      img.src = icon || '';
+                      img.alt = '';
+                      img.style.width = '20px';
+                      img.style.height = '20px';
+                      img.style.borderRadius = '4px';
+                      img.style.objectFit = 'contain';
+                      img.style.display = icon ? 'block' : 'none';
+
+                      const span = document.createElement('span');
+                      span.textContent = name || t('knowledge.placeholder.model_fallback', { id });
+
+                      opt.appendChild(img);
+                      opt.appendChild(span);
+
+                      opt.onclick = function() {
+                        hiddenInput.value = String(id);
+                        nameEl.textContent = span.textContent;
+                        if (icon) { iconEl.src = icon; iconEl.style.display = 'block'; } else { iconEl.style.display = 'none'; }
+                        dropdownEl.style.display = 'none';
+                      };
+
+                      dropdownEl.appendChild(opt);
+
+                      if (!selectedFound && normalizedInitialId !== undefined && normalizedInitialId !== '' && Number(normalizedInitialId) === Number(id)) {
+                        selectedFound = true;
+                        hiddenInput.value = String(id);
+                        nameEl.textContent = span.textContent;
+                        if (icon) { iconEl.src = icon; iconEl.style.display = 'block'; } else { iconEl.style.display = 'none'; }
+                      }
+                    });
+                  });
+
+                  if (!selectedFound) {
+                    const first = dropdownEl.firstElementChild;
+                    if (first) {
+                      first.click();
+                    } else {
+                      nameEl.textContent = t('knowledge.tip.setup_model_first');
+                      iconEl.style.display = 'none';
+                    }
+                  }
+                })
+                .catch(err => {
+                  dropdownEl.innerHTML = '<div style="padding:8px;color:#e74c3c;">' + t('knowledge.error.model_list_load_failed') + '</div>';
+                  console.error(t('knowledge.error.model_list_load_failed') + ':', err);
+                });
+
+            } catch (e) {
+              console.error('初始化内置模型下拉失败:', e);
+            }
+          }
+
+          function buildKnowledgePayloadFromInputs() {
+              const val = (id) => {
+                  const el = document.getElementById(id);
+                  return el ? el.value : '';
+              };
+              const checked = (id) => {
+                  const el = document.getElementById(id);
+                  return el ? !!el.checked : false;
+              };
+              const toNum = (v) => {
+                  const n = Number(v);
+                  return isNaN(n) ? undefined : n;
+              };
+
+              const typeVal = toNum(val('kb_embedding_type'));
+              // 根据选择的 embedding type，抽取 base_conn_info 与 dims
+              const baseConnInfo = (() => {
+                  switch (typeVal) {
+                      case 0: // Ark
+                          return {
+                              base_url: val('kb_ark_base_url'),
+                              api_key: val('kb_ark_api_key'),
+                              model: val('kb_ark_model')
+                          };
+                      case 1: // OpenAI
+                          return {
+                              base_url: val('kb_openai_base_url'),
+                              api_key: val('kb_openai_api_key'),
+                              model: val('kb_openai_model')
+                          };
+                      case 2: // Ollama
+                          return {
+                              base_url: val('kb_ollama_base_url'),
+                              model: val('kb_ollama_model')
+                          };
+                      case 3: // Gemini
+                          return {
+                              base_url: val('kb_gemini_base_url'),
+                              api_key: val('kb_gemini_api_key'),
+                              model: val('kb_gemini_model')
+                          };
+                      case 4: // HTTP
+                      default:
+                          return { base_url: '', api_key: '', model: '' };
+                  }
+              })();
+
+              const dimsVal = (() => {
+                  switch (typeVal) {
+                      case 0: return toNum(val('kb_ark_embedding_dims'));
+                      case 1: return toNum(val('kb_openai_embedding_dims'));
+                      case 2: return toNum(val('kb_ollama_embedding_dims'));
+                      case 3: return toNum(val('kb_gemini_embedding_dims'));
+                      case 4: return toNum(val('kb_http_dims'));
+                      default: return undefined;
+                  }
+              })();
+
+              return {
+                  knowledge_config: {
+                      embedding_config: {
+                          type: typeVal,
+                                  max_batch_size: toNum(val('kb_embedding_max_batch_size')) ?? 100,
+                                  connection: {
+                              base_conn_info: baseConnInfo,
+                              embedding_info: { dims: dimsVal },
+                              ark: {
+                                  api_type: val('kb_ark_embedding_api_type')
+                              },
+                              openai: {
+                                  by_azure: checked('kb_openai_embedding_by_azure'),
+                                  api_version: val('kb_openai_embedding_api_version')
+                              },
+                              gemini: {
+                                  backend: toNum(val('kb_gemini_embedding_backend')),
+                                  project: val('kb_gemini_embedding_project'),
+                                  location: val('kb_gemini_embedding_location')
+                              },
+                              http: {
+                                  address: val('kb_http_address')
+                              }
+                          }
+                      },
+                      rerank_config: {
+                          type: toNum(val('kb_rerank_type')),
+                          vikingdb_config: {
+                              ak: val('kb_vik_ak'),
+                              sk: val('kb_vik_sk'),
+                              host: val('kb_vik_host'),
+                              region: val('kb_vik_region'),
+                              model: val('kb_vik_model')
+                          }
+                      },
+                      ocr_config: {
+                          type: toNum(val('kb_ocr_type')),
+                          volcengine_ak: val('kb_ocr_ark_ak'),
+                          volcengine_sk: val('kb_ocr_ark_sk'),
+                          paddleocr_api_url: val('kb_ocr_paddleocr_api_url')
+                      },
+                      parser_config: {
+                          type: toNum(val('kb_parser_type')),
+                          paddleocr_structure_api_url: val('kb_parser_paddleocr_structure_api_url')
+                      },
+                      builtin_model_id: toNum(val('kb_builtin_model_id'))
+                  }
+              };
+          }
+
+          function saveKnowledgeConfig() {
+              try {
+                  const payload = buildKnowledgePayloadFromInputs();
+                  // 初始化 Rerank 配置显示状态（防止未选择时错误展示）
+                  try { setRerankTypeUI(Number(document.getElementById('kb_rerank_type')?.value || 0)); } catch (_) {}
+
+                  // Embedding 必填项校验（不同类型不同必填要求）
+                  const typeVal = Number(document.getElementById('kb_embedding_type')?.value);
+                  const get = (id) => (document.getElementById(id)?.value || '').trim();
+                  const getDims = (id) => {
+                      const el = document.getElementById(id);
+                      return el ? Number(el.value) : 0;
+                  };
+
+                  if (typeVal === 0) {
+                      // Ark: Base URL、API Key、Model、Dims 必填，API Type 可选
+                      const dimsVal = getDims('kb_ark_embedding_dims');
+                      const missing = [];
+                      if (!get('kb_ark_base_url')) missing.push('Base URL');
+                      if (!get('kb_ark_api_key')) missing.push('API Key');
+                      if (!get('kb_ark_model')) missing.push('Model');
+                      if (dimsVal < 0) {
+                          showError('Dims must be >= 0');
+                          return;
+                      }
+                      
+                      if (missing.length > 0) {
+                          showError(t('error.missing_required', { list: missing.join(', ') }));
+                          return;
+                      }
+                  } else if (typeVal === 1) {
+                      // OpenAI: Base URL、Model、API Key、Dims 必填
+                      const dimsVal = getDims('kb_openai_embedding_dims');
+                      const missing = [];
+                      if (!get('kb_openai_base_url')) missing.push('Base URL');
+                      if (!get('kb_openai_model')) missing.push('Model');
+                      if (!get('kb_openai_api_key')) missing.push('API Key');
+                      if (dimsVal < 0) {
+                          showError('Dims must be >= 0');
+                          return;
+                      }
+                      if (missing.length > 0) {
+                          showError(t('error.missing_required', { list: missing.join(', ') }));
+                          return;
+                      }
+                  } else if (typeVal === 2) {
+                      // Ollama: Base URL、Model、Dims 必填
+                      const dimsVal = getDims('kb_ollama_embedding_dims');
+                      const missing = [];
+                      if (!get('kb_ollama_base_url')) missing.push('Base URL');
+                      if (!get('kb_ollama_model')) missing.push('Model');
+                      if (dimsVal < 0) {
+                          showError('Dims must be >= 0');
+                          return;
+                      }
+                      if (missing.length > 0) {
+                          showError(t('error.missing_required', { list: missing.join(', ') }));
+                          return;
+                      }
+                  } else if (typeVal === 3) {
+                      // Gemini: Base URL、API Key、Model、Dims、Backend 必填；Project、Location 选填
+                      const dimsVal = getDims('kb_gemini_embedding_dims');
+                      const backendStr = (document.getElementById('kb_gemini_embedding_backend')?.value || '').trim();
+                      const missing = [];
+                      if (!get('kb_gemini_base_url')) missing.push('Base URL');
+                      if (!get('kb_gemini_api_key')) missing.push('API Key');
+                      if (!get('kb_gemini_model')) missing.push('Model');
+                      if (!backendStr) missing.push('Backend');
+                      if (dimsVal < 0) {
+                          showError('Dims must be >= 0');
+                          return;
+                      }
+                      if (missing.length > 0) {
+                          showError(t('error.missing_required', { list: missing.join(', ') }));
+                          return;
+                      }
+                  } else if (typeVal === 4) {
+                      // HTTP: Address、Dims 必填
+                      const dimsVal = getDims('kb_http_dims');
+                      const missing = [];
+                      if (!get('kb_http_address')) missing.push('Address');
+                      if (dimsVal < 0) {
+                          showError('Dims must be >= 0');
+                          return;
+                      }
+                      if (missing.length > 0) {
+                          showError(t('error.missing_required', { list: missing.join(', ') }));
+                          return;
+                      }
+                  }
+
+                  // Rerank 必填项校验：VikingDB 的 AK、SK 必填，其它项选填
+                  try {
+                      const rerankTypeVal = Number(document.getElementById('kb_rerank_type')?.value);
+                      if (rerankTypeVal === 0) {
+                          const missing = [];
+                          if (!get('kb_vik_ak')) missing.push('AK');
+                          if (!get('kb_vik_sk')) missing.push('SK');
+                          if (missing.length > 0) {
+                              showError(t('error.missing_required', { list: missing.join(', ') }));
+                              return;
+                          }
+                      }
+                  } catch (_) {}
+
+                //   showOverlay(t('overlay.saving'));
+                  fetch('/api/admin/config/knowledge/save', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(payload)
+                  }).then(async (resp) => {
+                      let bodyText = '';
+                      try { bodyText = await resp.text(); } catch (_) {}
+                      let data = null;
+                      try { data = JSON.parse(bodyText); } catch (_) { data = null; }
+                      if (data && typeof data === 'object') {
+                          if (handleApiCode(data)) { hideOverlay(); return; }
+                          if (Number(data.code) === 0) { hideOverlay(); showSuccess(t('success.saved_restart_required')); return; }
+                          hideOverlay(); showError(t('error.save_failed_reason', { reason: (data?.msg || t('error.api_error')) })); return;
+                      }
+                      if (!resp.ok) {
+                          hideOverlay();
+                          throw new Error(bodyText || ('HTTP ' + resp.status));
+                      }
+                      hideOverlay();
+                      showSuccess(t('success.saved_restart_required'));
+                  }).catch((err) => {
+                      hideOverlay();
+                      console.error('Failed to save knowledge configuration:', err);
+                      showError(t('error.save_failed_reason', { reason: (err?.message || String(err)) }));
+                  });
+              } catch (e) {
+                  hideOverlay();
+                  console.error('Knowledge configuration save exception:', e);
+                  showError(t('error.save_failed_reason', { reason: e.message }));
+              }
+          }
+
+          function setEmbeddingTypeUI(typeVal) {
+              const ids = ['kb_conn_ark','kb_conn_openai','kb_conn_ollama','kb_conn_gemini','kb_conn_http'];
+              ids.forEach((id, idx) => {
+                  const el = document.getElementById(id);
+                  if (el) el.style.display = (Number(typeVal) === idx ? 'block' : 'none');
+              });
+          }
+
+          function setRerankTypeUI(typeVal) {
+              try {
+                  const vik = document.getElementById('kb_conn_vikingdb');
+                  if (!vik) return;
+                  vik.style.display = Number(typeVal) === 0 ? '' : 'none';
+              } catch (_) {}
+          }
+          function onRerankTypeChange() {
+              try {
+                  const v = Number(document.getElementById('kb_rerank_type')?.value);
+                  setRerankTypeUI(v);
+              } catch (_) {}
+          }
+
+          function setOcrTypeUI(typeVal) {
+              try {
+                  const volc = document.getElementById('kb_conn_ocr_volcengine');
+                  const pad = document.getElementById('kb_conn_ocr_paddleocr');
+                  if (!volc || !pad) return;
+                  const t = Number(typeVal);
+                  volc.style.display = t === 0 ? '' : 'none';
+                  pad.style.display = t === 1 ? '' : 'none';
+              } catch (_) {}
+          }
+          function onOcrTypeChange() {
+              try {
+                  const v = Number(document.getElementById('kb_ocr_type')?.value);
+                  setOcrTypeUI(v);
+              } catch (_) {}
+          }
+
+          function setParserTypeUI(typeVal) {
+              try {
+                  const pad = document.getElementById('kb_conn_parser_paddleocr');
+                  if (!pad) return;
+                  pad.style.display = Number(typeVal) === 1 ? '' : 'none';
+              } catch (_) {}
+          }
+          function onParserTypeChange() {
+              try {
+                  const v = Number(document.getElementById('kb_parser_type')?.value);
+                  setParserTypeUI(v);
+              } catch (_) {}
+          }
+
+          function onEmbeddingTypeChange() {
+              const sel = document.getElementById('kb_embedding_type');
+              const val = sel ? Number(sel.value) : 0;
+              setEmbeddingTypeUI(val);
+          }
+
+          function showLoading() {
+            pageContent.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <span>${t('loading')}</span>
+                </div>
+            `;
+        }
+
+        // 统一成功提示（透明浮层）
+        function showSuccess(message) {
+            showOverlay(message || t('success.generic'), 'success');
+        }
+
+        // 统一错误提示（透明浮层）
+        function showError(message) {
+            showOverlay(message || t('error.generic'), 'error');
+        }
+
+        // 透明浮层：显示（与 config.html 保持一致）
+        function showOverlay(message, type) {
+            const overlay = document.getElementById('overlay');
+            const overlayContent = document.getElementById('overlayContent');
+            const overlayMessage = document.getElementById('overlayMessage');
+            if (!overlay || !overlayContent || !overlayMessage) {
+                alert(String(message || t('error.generic')));
+                return;
+            }
+            overlayMessage.textContent = String(message || '');
+            overlayContent.className = `overlay-content ${type === 'success' ? 'success' : 'error'}`;
+            overlay.classList.add('show');
+            // 背景点击关闭
+            overlay.onclick = function(e) {
+                if (e.target === overlay) {
+                    hideOverlay();
+                }
+            };
+            // 3秒后自动隐藏
+            setTimeout(() => hideOverlay(), 3000);
+        }
+
+        // 透明浮层：隐藏
+        function hideOverlay() {
+            const overlay = document.getElementById('overlay');
+            if (overlay) {
+                overlay.classList.remove('show');
+            }
+        }
+
+        // 加载外部页面
+        function loadPage(filename) {
+            showLoading();
+            
+            fetch(filename)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    // 解析HTML并提取内容
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    const title = doc.querySelector('title')?.textContent || t('page.default.title');
+                    const content = doc.querySelector('.page-content')?.innerHTML || 
+                                  doc.querySelector('body')?.innerHTML || 
+                                  `<p>${t('page.empty')}</p>`;
+                    
+                    pageTitle.textContent = title;
+                    pageDescription.textContent = t('page.manage_config', { title });
+                    pageContent.innerHTML = content;
+                    
+                    // 执行页面中的脚本
+                    const scripts = doc.querySelectorAll('script');
+                    scripts.forEach(script => {
+                        if (script.textContent) {
+                            try {
+                                eval(script.textContent);
+                            } catch (e) {
+                                console.warn('执行页面脚本失败:', e);
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('加载页面失败:', error);
+                    showError(t('error.page_load_failed_reason', { reason: error.message }));
+                });
+        }
+
+        // 快速操作函数
+        function showSystemStatus() {
+            pageContent.innerHTML = `
+                <div style="padding: 30px;">
+                    <h2 style="margin-bottom: 20px;">📊 系统状态</h2>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #28a745;">
+                            <h4 style="color: #28a745; margin: 0 0 10px;">服务状态</h4>
+                            <p style="margin: 0; font-size: 24px; font-weight: bold;">🟢 正常运行</p>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #007bff;">
+                            <h4 style="color: #007bff; margin: 0 0 10px;">CPU 使用率</h4>
+                            <p style="margin: 0; font-size: 24px; font-weight: bold;">23%</p>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #ffc107;">
+                            <h4 style="color: #ffc107; margin: 0 0 10px;">内存使用</h4>
+                            <p style="margin: 0; font-size: 24px; font-weight: bold;">1.2GB / 4GB</p>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #17a2b8;">
+                            <h4 style="color: #17a2b8; margin: 0 0 10px;">运行时间</h4>
+                            <p style="margin: 0; font-size: 24px; font-weight: bold;">7天 12小时</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showLogs() {
+            pageContent.innerHTML = `
+                <div style="padding: 30px;">
+                    <h2 style="margin-bottom: 20px;">📝 系统日志</h2>
+                    <div style="background: #1e1e1e; color: #00ff00; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px; max-height: 400px; overflow-y: auto;">
+                        <div>[2024-01-16 10:30:15] INFO: 系统启动完成</div>
+                        <div>[2024-01-16 10:30:16] INFO: 加载配置文件成功</div>
+                        <div>[2024-01-16 10:30:17] INFO: 数据库连接建立</div>
+                        <div>[2024-01-16 10:30:18] INFO: API 服务启动，端口: 8080</div>
+                        <div>[2024-01-16 10:35:22] INFO: 用户登录: admin</div>
+                        <div>[2024-01-16 10:36:45] INFO: 模型配置更新</div>
+                        <div>[2024-01-16 10:38:12] WARN: 知识库索引队列较长</div>
+                        <div>[2024-01-16 10:40:33] INFO: 知识库索引完成</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function exportConfig() {
+            const config = {
+                timestamp: new Date().toISOString(),
+                version: "1.0.0",
+                settings: {
+                    api: { endpoint: "https://api.example.com", timeout: 30000 },
+                    models: ["gpt-4", "gpt-3.5-turbo"],
+                    knowledge: { maxSize: "10GB", indexing: true }
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'coze-studio-config.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            alert(t('export.success'));
+        }
+
+        function showHelp() {
+            pageContent.innerHTML = `
+                <div style="padding: 30px;">
+                    <h2 style="margin-bottom: 20px;">❓ ${t('help.title')}</h2>
+                    <div style="display: grid; gap: 20px;">
+                        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h3 style="color: #667eea; margin-top: 0;">${t('help.quickstart.title')}</h3>
+                            <p>1. ${t('help.quickstart.step1')}</p>
+                            <p>2. ${t('help.quickstart.step2')}</p>
+                            <p>3. ${t('help.quickstart.step3')}</p>
+                            <p>4. ${t('help.quickstart.step4')}</p>
+                        </div>
+                        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h3 style="color: #667eea; margin-top: 0;">${t('help.features.title')}</h3>
+                            <p><strong>${t('page.basic.title')}：</strong>${t('help.features.basic')}</p>
+                            <p><strong>${t('page.model.title')}：</strong>${t('help.features.model')}</p>
+                            <p><strong>${t('page.knowledge.title')}：</strong>${t('help.features.kb')}</p>
+                        </div>
+                        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h3 style="color: #667eea; margin-top: 0;">${t('help.support.title')}</h3>
+                            <p>${t('help.support.contact')}</p>
+                            <p>${t('help.support.email', { email: 'support@coze-studio.com' })}</p>
+                            <p>${t('help.support.phone', { phone: '400-123-4567' })}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

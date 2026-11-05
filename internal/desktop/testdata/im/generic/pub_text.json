@@ -1,0 +1,22 @@
+{
+  "desc": "公共号文本消息（pubRespon 协议典型录制样本；回放时以测试密钥重签 PubToken）",
+  "kind": "pub",
+  "body": {
+    "ServiceType": "xt",
+    "PubAccId": "XT-test-pub-001",
+    "FromUserName": "c51b52e8-xxx",
+    "ToUserName": "XT-test-pub-001",
+    "MsgType": "text",
+    "MsgId": "XT-replay-pub-001",
+    "CreateTime": "1396593594951",
+    "PubToken": "recorded-signature-replaced-on-replay",
+    "Payload": { "Content": "帮我看下今天的构建日志" }
+  },
+  "want": {
+    "parseOk": true,
+    "from": "c51b52e8-xxx",
+    "msgId": "XT-replay-pub-001",
+    "text": "帮我看下今天的构建日志",
+    "respType": 2
+  }
+}
